@@ -8,6 +8,8 @@
   },
   "scripts": {
     "build": "tsc --resolveJsonModule",
+    "clean": "rimraf dist",
+    "prebuild": "npm run clean",
     "prepublishOnly": "npm run build",
     "test": "jest"
   },
@@ -20,6 +22,7 @@
     "@types/rollup": "^0.54.0",
     "babel-jest": "^24.9.0",
     "jest": "^24.9.0",
+    "rimraf": "^3.0.0",
     "superagent": "^5.1.0",
     "typescript": "^3.6.2"
   },
