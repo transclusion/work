@@ -1,5 +1,6 @@
+import path from "path";
 import * as rollup from "rollup";
-import { findConfig, findPlugins } from "./helpers";
+import { findConfig, findEnvConfig, findPlugins } from "./helpers";
 import { getClientConfig } from "./rollup/client";
 import { getServerConfig } from "./rollup/server";
 import { Logger } from "./types";
@@ -21,8 +22,8 @@ async function build(opts: Opts) {
   const { cwd } = opts;
   const config = findConfig(cwd);
   const plugins = findPlugins(cwd, config);
-  const envConfig = {};
-  const pkg = {};
+  const envConfig = findEnvConfig(cwd);
+  const pkg = require(path.resolve(cwd, "package.json"));
 
   const rollupConfig: any = {
     client: getClientConfig({ config, envConfig, cwd, pkg, minify: true, plugins }),

@@ -1,3 +1,4 @@
+import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import pathToRegexp from "path-to-regexp";
@@ -11,6 +12,23 @@ function dep(m: any) {
 export function findConfig(cwd: string): Config {
   const configPath = path.resolve(cwd, "work.config.js");
   return dep(require(configPath));
+}
+
+function requireEnvFile(filePath: string) {
+  try {
+    return dotenv.parse(fs.readFileSync(filePath));
+  } catch (_) {
+    return {};
+  }
+}
+
+export function findEnvConfig(cwd: string) {
+  const envName = process.env.NODE_ENV;
+  return {
+    ...requireEnvFile(path.resolve(cwd, ".env")),
+    ...(envName ? requireEnvFile(path.resolve(cwd, `.env.${envName}`)) : {}),
+    ...(envName ? requireEnvFile(path.resolve(cwd, `.env.${envName}.local`)) : {})
+  };
 }
 
 export function findPlugins(cwd: string, config: Config): Config[] {

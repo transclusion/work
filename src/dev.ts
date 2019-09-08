@@ -6,7 +6,7 @@ import * as rollup from "rollup";
 import { getClientConfig } from "./rollup/client";
 import { getServerConfig } from "./rollup/server";
 import { eventSource } from "./eventSource";
-import { findConfig, findPlugins, matchRoute, readFile } from "./helpers";
+import { findConfig, findEnvConfig, findPlugins, matchRoute, readFile } from "./helpers";
 import { reloadScript } from "./reload";
 import { Logger } from "./types";
 
@@ -33,8 +33,8 @@ function dev(opts: Opts) {
   const cwd = opts.cwd;
   const config = findConfig(cwd);
   const plugins = findPlugins(cwd, config);
-  const envConfig = {};
-  const pkg = {};
+  const envConfig = findEnvConfig(cwd);
+  const pkg = require(path.resolve(cwd, "package.json"));
   const port = (config.server && config.server.port) || 3000;
 
   const rollupConfig = {
@@ -124,7 +124,10 @@ function dev(opts: Opts) {
     const server = micro(handler);
 
     watchers.client.on("event", event => {
-      if (event.code === "FATAL") {
+      if (event.code === "ERROR") {
+        logger.error(event.error.stack);
+        process.exit(1);
+      } else if (event.code === "FATAL") {
         logger.error(event.error.stack);
         process.exit(1);
       }
@@ -140,6 +143,9 @@ function dev(opts: Opts) {
             }
           });
         });
+      } else if (event.code === "ERROR") {
+        logger.error(event.error.stack);
+        process.exit(1);
       } else if (event.code === "FATAL") {
         logger.error(event.error.stack);
         process.exit(1);
