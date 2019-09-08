@@ -12,4 +12,5 @@ export interface Opts {
     };
   };
   minify?: boolean;
+  plugins: Config[];
 }

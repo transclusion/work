@@ -7,7 +7,7 @@
     "work": "./dist/cjs/cli.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --resolveJsonModule",
     "prepublishOnly": "npm run build",
     "test": "jest"
   },
@@ -17,6 +17,7 @@
     "@types/jest": "^24.0.18",
     "@types/micro": "^7.3.3",
     "@types/node": "^12.7.4",
+    "@types/rollup": "^0.54.0",
     "babel-jest": "^24.9.0",
     "jest": "^24.9.0",
     "superagent": "^5.1.0",
@@ -32,6 +33,7 @@
     "micro": "^9.3.4",
     "mime-types": "^2.1.24",
     "path-to-regexp": "^3.1.0",
+    "resolve": "^1.12.0",
     "rollup": "^1.20.3",
     "rollup-plugin-alias": "^2.0.0",
     "rollup-plugin-babel": "^4.3.3",

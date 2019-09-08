@@ -32,7 +32,7 @@ export interface RollupResolveConfig {
 
 export interface RollupTerserConfig {}
 
-export interface RollupConfig {
+export interface RollupOpts {
   alias: RollupAliasConfig;
   babel: RollupBabelConfig;
   commonjs: RollupCommonJSConfig;
@@ -42,24 +42,14 @@ export interface RollupConfig {
   terser: RollupTerserConfig;
 }
 
-type IdentityFn<Identity> = (value: Identity) => Identity;
+export type IdentityFn<Identity> = (value: Identity) => Identity;
 
-export interface RollupUpdateFns {
-  alias?: IdentityFn<RollupAliasConfig>;
-  babel?: IdentityFn<RollupBabelConfig>;
-  commonjs?: IdentityFn<RollupCommonJSConfig>;
-  external?: IdentityFn<RollupExternalConfig>;
-  replace?: IdentityFn<RollupReplaceConfig>;
-  resolve?: IdentityFn<RollupResolveConfig>;
-  terser?: IdentityFn<RollupTerserConfig>;
-}
-
-interface ClientConfig {
+export interface ClientConfig {
   context?: string;
   input?: string[];
 }
 
-interface ServerConfig {
+export interface ServerConfig {
   context?: string;
   routes?: {
     [key: string]: string;
@@ -69,8 +59,9 @@ interface ServerConfig {
 
 export interface Config {
   client?: ClientConfig;
+  plugins?: string[];
+  extendRollup?: (rollupOpts: RollupOpts) => RollupOpts;
   server?: ServerConfig;
-  rollup?: RollupUpdateFns;
 }
 
 export interface Logger {

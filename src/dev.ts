@@ -2,12 +2,11 @@ import fs from "fs";
 import micro from "micro";
 import mimeTypes from "mime-types";
 import path from "path";
-import pathToRegexp from "path-to-regexp";
 import * as rollup from "rollup";
 import { getClientConfig } from "./rollup/client";
 import { getServerConfig } from "./rollup/server";
 import { eventSource } from "./eventSource";
-import { findConfig } from "./helpers";
+import { findConfig, findPlugins, matchRoute, readFile } from "./helpers";
 import { reloadScript } from "./reload";
 import { Logger } from "./types";
 
@@ -33,15 +32,15 @@ function dev(opts: Opts) {
   const logger = opts.logger || DEFAULT_LOGGER;
   const cwd = opts.cwd;
   const config = findConfig(cwd);
+  const plugins = findPlugins(cwd, config);
   const envConfig = {};
   const pkg = {};
+  const port = (config.server && config.server.port) || 3000;
 
   const rollupConfig = {
-    client: getClientConfig({ config, envConfig, cwd, pkg }),
-    server: getServerConfig({ config, envConfig, cwd, pkg })
+    client: getClientConfig({ config, envConfig, cwd, pkg, plugins }),
+    server: getServerConfig({ config, envConfig, cwd, pkg, plugins })
   };
-
-  const port = (config.server && config.server.port) || 3000;
 
   const listen = (cb?: ListenCallback) => {
     const es = eventSource();
@@ -51,27 +50,6 @@ function dev(opts: Opts) {
       server: rollup.watch(rollupConfig.server as any)
     };
 
-    function matchRoute(routes: any, url: string): { path: string } | null {
-      let match = null;
-      Object.keys(routes).some(routePattern => {
-        const keys: any[] = [];
-        const regexp = pathToRegexp(routePattern, keys);
-        const result = regexp.exec(url);
-        if (result) {
-          match = {
-            path: routes[routePattern],
-            params: keys.reduce((curr, x, i) => {
-              curr[typeof x.name === "number" ? `$${x.name}` : x.name] = result[i + 1];
-              return curr;
-            }, {})
-          };
-          return true;
-        }
-        return false;
-      });
-      return match;
-    }
-
     function matchStaticFile(url: string): Promise<string | null> {
       return new Promise(resolve => {
         if (url === "/") return resolve(null);
@@ -79,15 +57,6 @@ function dev(opts: Opts) {
         fs.access(filePath, (fs as any).F_OK, err => {
           if (err) resolve(null);
           else resolve(filePath);
-        });
-      });
-    }
-
-    function readFile(filePath: string) {
-      return new Promise((resolve, reject) => {
-        fs.readFile(filePath, (err, buf) => {
-          if (err) reject(err);
-          else resolve(buf);
         });
       });
     }
