@@ -35,8 +35,7 @@ export function findPlugins(cwd: string, config: Config): Config[] {
   if (config.plugins) {
     return config.plugins.map(pluginId => {
       const pluginPath = resolve.sync(pluginId, { basedir: cwd });
-      const pluginDir = path.dirname(pluginPath);
-      return findConfig(pluginDir);
+      return dep(require(pluginPath));
     });
   }
 

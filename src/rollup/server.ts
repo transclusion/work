@@ -29,14 +29,9 @@ export function getServerConfig(opts: Opts): RollupOptions[] {
         }))
       },
       babel: {
-        babelrc: false,
+        root: cwd,
         exclude: "node_modules/**",
-        extensions: [".ts", ".tsx", ".es6", ".es", ".jsx", ".js", ".mjs"],
-        presets: [
-          require.resolve("@babel/preset-typescript"),
-          require.resolve("@babel/preset-env"),
-          require.resolve("@babel/preset-react")
-        ]
+        extensions: [".ts", ".tsx", ".es6", ".es", ".jsx", ".js", ".mjs"]
       },
       commonjs: { sourceMap: true },
       external: ["micro"],
@@ -77,8 +72,8 @@ export function getServerConfig(opts: Opts): RollupOptions[] {
         alias(rollupOpts.alias),
         json(),
         resolve(rollupOpts.resolve),
-        commonjs(rollupOpts.commonjs),
         replace(rollupOpts.replace),
+        commonjs(rollupOpts.commonjs),
         minify && terser()
       ].filter(Boolean)
     };

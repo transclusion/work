@@ -1,4 +1,6 @@
-export default {
+"use strict";
+
+module.exports = {
   extendRollup: rollupOpts => {
     const external = rollupOpts.external.concat(["stream"]);
     const commonjs = {

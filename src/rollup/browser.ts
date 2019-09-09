@@ -11,13 +11,13 @@ import { RollupOpts } from "../types";
 import { extendRollupOpts, defaultExtendRollupOpts } from "./helpers";
 import { Opts } from "./types";
 
-export function getClientConfig(opts: Opts): RollupOptions[] {
+export function getBrowserConfig(opts: Opts): RollupOptions[] {
   const { config, envConfig, cwd, minify, pkg, plugins } = opts;
-  const clientConfig = config.client;
+  const browserConfig = config.browser;
 
-  if (!clientConfig || !clientConfig.input) return [];
+  if (!browserConfig || !browserConfig.input) return [];
 
-  const rootPath = path.resolve(cwd, clientConfig.context || ".");
+  const rootPath = path.resolve(cwd, browserConfig.context || ".");
   const aliasConfig = pkg.alias || {};
   const rollupOpts: RollupOpts = extendRollupOpts(
     {
@@ -28,14 +28,9 @@ export function getClientConfig(opts: Opts): RollupOptions[] {
         }))
       },
       babel: {
-        babelrc: false,
+        root: cwd,
         exclude: "node_modules/**",
-        extensions: [".ts", ".tsx", ".es6", ".es", ".jsx", ".js", ".mjs"],
-        presets: [
-          require.resolve("@babel/preset-typescript"),
-          require.resolve("@babel/preset-env"),
-          require.resolve("@babel/preset-react")
-        ]
+        extensions: [".ts", ".tsx", ".es6", ".es", ".jsx", ".js", ".mjs"]
       },
       external: [],
       resolve: {
@@ -62,11 +57,11 @@ export function getClientConfig(opts: Opts): RollupOptions[] {
     )
   );
 
-  return clientConfig.input.map(inputPath => {
+  return browserConfig.input.map(inputPath => {
     return {
       input: path.resolve(rootPath, inputPath),
       output: {
-        dir: path.resolve(cwd, "dist/client"),
+        dir: path.resolve(cwd, "dist/browser"),
         format: "iife",
         sourcemap: true
       },
@@ -76,8 +71,8 @@ export function getClientConfig(opts: Opts): RollupOptions[] {
         alias(rollupOpts.alias),
         json(),
         resolve(rollupOpts.resolve),
-        commonjs(rollupOpts.commonjs),
         replace(rollupOpts.replace),
+        commonjs(rollupOpts.commonjs),
         minify && terser()
       ].filter(Boolean)
     };

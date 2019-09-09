@@ -6,7 +6,7 @@
 
 ## What is this?
 
-`@transclusion/work` is a library that provides a **highly opinionated environment for quickly developing web apps** with Node.js. Becauce it’s built on top of `micro`, it works particularly well with the `now` platform.
+`@transclusion/work` is a runtime that provides a **highly opinionated environment for quickly developing web apps** with Node.js. Becauce it’s built on top of `micro`, it works particularly well with the `now` platform.
 
 It’s about:
 

@@ -6,10 +6,9 @@ export interface RollupAliasConfig {
 }
 
 export interface RollupBabelConfig {
-  babelrc: boolean;
+  root: string;
   exclude: string | string[];
   extensions: string[];
-  presets: string[];
 }
 
 export interface RollupCommonJSConfig {
@@ -44,7 +43,7 @@ export interface RollupOpts {
 
 export type IdentityFn<Identity> = (value: Identity) => Identity;
 
-export interface ClientConfig {
+export interface BrowserConfig {
   context?: string;
   input?: string[];
 }
@@ -58,7 +57,7 @@ export interface ServerConfig {
 }
 
 export interface Config {
-  client?: ClientConfig;
+  browser?: BrowserConfig;
   plugins?: string[];
   extendRollup?: (rollupOpts: RollupOpts) => RollupOpts;
   server?: ServerConfig;

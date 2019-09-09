@@ -1,5 +1,5 @@
 {
   "name": "plugin-react",
   "version": "1.0.0",
-  "main": "package.json"
+  "main": "config.js"
 }

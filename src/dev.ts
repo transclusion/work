@@ -2,11 +2,9 @@ import fs from "fs";
 import micro from "micro";
 import mimeTypes from "mime-types";
 import path from "path";
-import * as rollup from "rollup";
-import { getClientConfig } from "./rollup/client";
-import { getServerConfig } from "./rollup/server";
+import { Worker } from "worker_threads";
 import { eventSource } from "./eventSource";
-import { findConfig, findEnvConfig, findPlugins, matchRoute, readFile } from "./helpers";
+import { findConfig, matchRoute, readFile } from "./helpers";
 import { reloadScript } from "./reload";
 import { Logger } from "./types";
 
@@ -32,28 +30,78 @@ function dev(opts: Opts) {
   const logger = opts.logger || DEFAULT_LOGGER;
   const cwd = opts.cwd;
   const config = findConfig(cwd);
-  const plugins = findPlugins(cwd, config);
-  const envConfig = findEnvConfig(cwd);
-  const pkg = require(path.resolve(cwd, "package.json"));
   const port = (config.server && config.server.port) || 3000;
-
-  const rollupConfig = {
-    client: getClientConfig({ config, envConfig, cwd, pkg, plugins }),
-    server: getServerConfig({ config, envConfig, cwd, pkg, plugins })
-  };
 
   const listen = (cb?: ListenCallback) => {
     const es = eventSource();
 
-    const watchers = {
-      client: rollup.watch(rollupConfig.client as any),
-      server: rollup.watch(rollupConfig.server as any)
+    const workers = {
+      browser: new Worker(path.resolve(__dirname, "./rollupWatchWorker.js"), {
+        env: {
+          BABEL_ENV: "browser",
+          NODE_ENV: process.env.NODE_ENV
+        },
+        workerData: {
+          cwd,
+          target: "browser"
+        }
+      } as any),
+      server: new Worker(path.resolve(__dirname, "./rollupWatchWorker.js"), {
+        env: {
+          BABEL_ENV: "server",
+          NODE_ENV: process.env.NODE_ENV
+        },
+        workerData: {
+          cwd,
+          target: "server"
+        }
+      } as any)
     };
+
+    workers.browser.on("error", event => {
+      console.log("TODO: workers.browser.error", event);
+    });
+
+    workers.browser.on("message", event => {
+      console.log(event);
+      if (event.code === "ERROR") {
+        logger.error(event.error.stack);
+        process.exit(1);
+      } else if (event.code === "FATAL") {
+        logger.error(event.error.stack);
+        process.exit(1);
+      }
+      es.send("browser", event);
+    });
+
+    workers.server.on("error", event => {
+      console.log("TODO: workers.server.error", event);
+    });
+
+    workers.server.on("message", event => {
+      console.log(event);
+      if (event.code === "BUNDLE_END") {
+        event.output.forEach((distPrefix: string) => {
+          Object.keys(require.cache).forEach(filePath => {
+            if (filePath.startsWith(distPrefix)) {
+              delete require.cache[filePath];
+            }
+          });
+        });
+      } else if (event.code === "ERROR") {
+        logger.error(event.error.stack);
+        process.exit(1);
+      } else if (event.code === "FATAL") {
+        logger.error(event.error.stack);
+        process.exit(1);
+      }
+      es.send("server", event);
+    });
 
     function matchStaticFile(url: string): Promise<string | null> {
       return new Promise(resolve => {
         if (url === "/") return resolve(null);
-        const filePath = path.resolve(cwd, "dist/client", `.${url}`);
+        const filePath = path.resolve(cwd, "dist/browser", `.${url}`);
         fs.access(filePath, (fs as any).F_OK, err => {
           if (err) resolve(null);
           else resolve(filePath);
@@ -123,36 +171,6 @@ function dev(opts: Opts) {
 
     const server = micro(handler);
 
-    watchers.client.on("event", event => {
-      if (event.code === "ERROR") {
-        logger.error(event.error.stack);
-        process.exit(1);
-      } else if (event.code === "FATAL") {
-        logger.error(event.error.stack);
-        process.exit(1);
-      }
-      es.send("client", event);
-    });
-
-    watchers.server.on("event", event => {
-      if (event.code === "BUNDLE_END") {
-        event.output.forEach((distPrefix: string) => {
-          Object.keys(require.cache).forEach(filePath => {
-            if (filePath.startsWith(distPrefix)) {
-              delete require.cache[filePath];
-            }
-          });
-        });
-      } else if (event.code === "ERROR") {
-        logger.error(event.error.stack);
-        process.exit(1);
-      } else if (event.code === "FATAL") {
-        logger.error(event.error.stack);
-        process.exit(1);
-      }
-      es.send("server", event);
-    });
-
     server.listen(port, () => {
       logger.info(`Listening at http://localhost:${port}`);
     });
@@ -160,8 +178,8 @@ function dev(opts: Opts) {
     if (cb) {
       cb(function close() {
         server.close();
-        watchers.client.close();
-        watchers.server.close();
+        workers.browser.terminate();
+        workers.server.terminate();
       });
     }
   };
