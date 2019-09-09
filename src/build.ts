@@ -1,9 +1,5 @@
 import path from "path";
 import { Worker } from "worker_threads";
-// import * as rollup from "rollup";
-// import { findConfig, findEnvConfig, findPlugins } from "./helpers";
-// import { getBrowserConfig } from "./rollup/browser";
-// import { getServerConfig } from "./rollup/server";
 import { Logger } from "./types";
 
 interface Opts {
@@ -40,71 +36,6 @@ async function build(opts: Opts) {
 
   await rollupBuild(cwd, "browser");
   await rollupBuild(cwd, "server");
-
-  // const config = findConfig(cwd);
-  // const plugins = findPlugins(cwd, config);
-  // const envConfig = findEnvConfig(cwd);
-  // const pkg = require(path.resolve(cwd, "package.json"));
-
-  // const rollupConfig: any = {
-  //   client: getBrowserConfig({ config, envConfig, cwd, pkg, minify: true, plugins }),
-  //   server: getServerConfig({ config, envConfig, cwd, pkg, minify: true, plugins })
-  // };
-
-  // await Promise.all([
-  //   ...rollupConfig.client.map(rollupBuild),
-  //   ...rollupConfig.server.map(rollupBuild)
-  // ]);
-
-  // const workers = {
-  //   browser: ,
-  //   server: new Worker(path.resolve(__dirname, "./rollupWatchWorker.js"), {
-  //     env: {
-  //       BABEL_ENV: "server",
-  //       NODE_ENV: process.env.NODE_ENV
-  //     },
-  //     workerData: {
-  //       cwd,
-  //       target: "server"
-  //     }
-  //   } as any)
-  // };
-
-  // workers.browser.on("error", event => {
-  //   console.log("TODO: workers.browser.error", event);
-  // });
-
-  // workers.browser.on("message", event => {
-  //   if (event.code === "ERROR") {
-  //     logger.error(event.error.stack);
-  //     process.exit(1);
-  //   } else if (event.code === "FATAL") {
-  //     logger.error(event.error.stack);
-  //     process.exit(1);
-  //   }
-  // });
-
-  // workers.server.on("error", event => {
-  //   console.log("TODO: workers.server.error", event);
-  // });
-
-  // workers.server.on("message", event => {
-  //   if (event.code === "BUNDLE_END") {
-  //     event.output.forEach((distPrefix: string) => {
-  //       Object.keys(require.cache).forEach(filePath => {
-  //         if (filePath.startsWith(distPrefix)) {
-  //           delete require.cache[filePath];
-  //         }
-  //       });
-  //     });
-  //   } else if (event.code === "ERROR") {
-  //     logger.error(event.error.stack);
-  //     process.exit(1);
-  //   } else if (event.code === "FATAL") {
-  //     logger.error(event.error.stack);
-  //     process.exit(1);
-  //   }
-  // });
 }
 
 export default build;
