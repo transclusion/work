@@ -36,6 +36,6 @@
 
     "lib": ["es2017"]
   },
-  "files": ["src/cli.ts", "src/index.ts", "src/rollupBuildWorker.ts", "src/rollupWatchWorker.ts"],
+  "files": ["src/cli.ts", "src/index.ts", "src/rollup/buildWorker.ts", "src/rollup/watchWorker.ts"],
   "include": ["typings/*.d.ts"]
 }

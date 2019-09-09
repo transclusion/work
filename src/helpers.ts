@@ -1,9 +1,9 @@
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
-import pathToRegexp from "path-to-regexp";
 import resolve from "resolve";
-import { Config } from "./types";
+import { RollupOpts } from "./rollup/types";
+import { Config, PluginConfig } from "./types";
 
 function dep(m: any) {
   return m.default || m;
@@ -31,36 +31,11 @@ export function findEnvConfig(cwd: string) {
   };
 }
 
-export function findPlugins(cwd: string, config: Config): Config[] {
-  if (config.plugins) {
-    return config.plugins.map(pluginId => {
-      const pluginPath = resolve.sync(pluginId, { basedir: cwd });
-      return dep(require(pluginPath));
-    });
-  }
-
-  return [];
-}
-
-export function matchRoute(routes: any, url: string): { path: string } | null {
-  let match = null;
-  Object.keys(routes).some(routePattern => {
-    const keys: any[] = [];
-    const regexp = pathToRegexp(routePattern, keys);
-    const result = regexp.exec(url);
-    if (result) {
-      match = {
-        path: routes[routePattern],
-        params: keys.reduce((curr, x, i) => {
-          curr[typeof x.name === "number" ? `$${x.name}` : x.name] = result[i + 1];
-          return curr;
-        }, {})
-      };
-      return true;
-    }
-    return false;
+export function findPlugins(cwd: string, pluginConfig: PluginConfig): Config[] {
+  return pluginConfig.map(pluginId => {
+    const pluginPath = resolve.sync(pluginId, { basedir: cwd });
+    return dep(require(pluginPath));
   });
-  return match;
 }
 
 export function readFile(filePath: string) {
@@ -72,13 +47,6 @@ export function readFile(filePath: string) {
   });
 }
 
-export function matchStaticFile(cwd: string, _: Config, url: string): Promise<string | null> {
-  return new Promise(resolve => {
-    if (url === "/") return resolve(null);
-    const filePath = path.resolve(cwd, "dist/browser", `.${url}`);
-    fs.access(filePath, (fs as any).F_OK, err => {
-      if (err) resolve(null);
-      else resolve(filePath);
-    });
-  });
+export function noopPluginFn(opts: RollupOpts): RollupOpts {
+  return opts;
 }

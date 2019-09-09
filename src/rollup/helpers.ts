@@ -1,14 +1,12 @@
-import { IdentityFn, RollupOpts } from "../types";
+import { BuildConfig, PluginFn } from "../types";
+import { RollupOpts } from "./types";
 
-export function extendRollupOpts(
+export function applyRollupPlugins(
   rollupOpts: RollupOpts,
-  extendRollupOptsFns: IdentityFn<RollupOpts>[]
+  buildConfig: BuildConfig,
+  pluginFns: PluginFn[]
 ): RollupOpts {
-  return extendRollupOptsFns.reduce((currRollupOpts, extendFn) => {
-    return extendFn(currRollupOpts);
+  return pluginFns.reduce((currRollupOpts, pluginFn) => {
+    return pluginFn(currRollupOpts, buildConfig);
   }, rollupOpts);
-}
-
-export function defaultExtendRollupOpts(rollupOpts: RollupOpts): RollupOpts {
-  return rollupOpts;
 }

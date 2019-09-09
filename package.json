@@ -20,6 +20,7 @@
     "dotenv": "^8.1.0",
     "micro": "^9.3.4",
     "mime-types": "^2.1.24",
+    "minimatch": "^3.0.4",
     "path-to-regexp": "^3.1.0",
     "resolve": "^1.12.0",
     "rollup": "^1.20.3",

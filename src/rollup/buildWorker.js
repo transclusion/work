@@ -1,4 +1,4 @@
 const path = require("path");
 
 require("ts-node").register();
-require(path.resolve(__dirname, "./rollupWatchWorker.ts"));
+require(path.resolve(__dirname, "./buildWorker.ts"));

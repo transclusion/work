@@ -20,21 +20,8 @@ const logger: Logger = {
   }
 };
 
-// function registerBabel() {
-//   require("@babel/register")({
-//     extensions: [".ts", ".tsx", ".es6", ".es", ".jsx", ".js", ".mjs"],
-//     root: process.cwd(),
-//     presets: [
-//       require.resolve("@babel/preset-typescript"),
-//       require.resolve("@babel/preset-env"),
-//       require.resolve("@babel/preset-react")
-//     ]
-//   });
-// }
-
 if (args[0] === "build") {
   try {
-    // registerBabel();
     build({
       cwd: process.cwd(),
       logger
@@ -48,7 +35,6 @@ if (args[0] === "build") {
   }
 } else if (args[0] === "dev") {
   try {
-    // registerBabel();
     dev({
       cwd: process.cwd(),
       logger,

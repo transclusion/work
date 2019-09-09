@@ -8,5 +8,5 @@ async function load() {
 }
 
 load().then(data => {
-  console.log(`Hello, ${data.name}!`);
+  document.getElementById("root").innerHTML = `Hello, ${data.name}! (browser)`;
 });

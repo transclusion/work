@@ -9,5 +9,6 @@ async function load() {
 
 export default async (req, res) => {
   const data = await load();
-  res.end(`Hello, ${data.name}!`);
+  res.end(`<div id="root">Hello, ${data.name}!</div>
+<script src="/browser.js"></script>`);
 };

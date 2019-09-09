@@ -12,6 +12,10 @@ function createLogger() {
   return { error: jest.fn(), info: jest.fn() };
 }
 
+// function createLogger() {
+//   return { error: console.error, info: console.log };
+// }
+
 describe("@transclusion/work.dev", () => {
   it("should serve basic app", done => {
     const logger = createLogger();
@@ -63,7 +67,7 @@ describe("@transclusion/work.dev", () => {
       const res = await request.get(`http://localhost:${port}/`);
       await delay(500);
       close();
-      expect(res.text).toBe(`Hello, Foo!`);
+      expect(res.text).toContain(`<div id="root">Hello, Foo!</div>`);
       expect(logger.error.mock.calls).toEqual([]);
       expect(logger.info.mock.calls).toEqual([
         [`Listening at http://localhost:${port}`],

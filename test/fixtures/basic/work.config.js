@@ -1,7 +1,6 @@
 "use strict";
 
 module.exports = {
-  browser: {
-    input: ["./browser.js"]
-  }
+  builds: [{ src: "./browser", target: "browser", dir: "./dist" }],
+  routes: [{ src: "/browser.js", dest: "./dist/browser.js" }]
 };

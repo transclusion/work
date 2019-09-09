@@ -1,9 +1,6 @@
 "use strict";
 
 module.exports = {
-  browser: {
-    context: "./src",
-    basePath: "./static",
-    input: ["./browser.js"]
-  }
+  builds: [{ src: "./src/browser.js", target: "browser", dir: "./dist/static" }],
+  routes: [{ src: "/static/(.*)", dest: "./dist/static/$1" }]
 };
