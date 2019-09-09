@@ -44,6 +44,7 @@ export interface RollupOpts {
 export type IdentityFn<Identity> = (value: Identity) => Identity;
 
 export interface BrowserConfig {
+  basePath?: string;
   context?: string;
   input?: string[];
 }
@@ -53,7 +54,6 @@ export interface ServerConfig {
   routes?: {
     [key: string]: string;
   };
-  port?: number | string;
 }
 
 export interface Config {

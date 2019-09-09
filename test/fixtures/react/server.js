@@ -1,10 +1,7 @@
 import React from "react";
 import { renderToString } from "react-dom/server";
-
-function App() {
-  return <div>App</div>;
-}
+import { App } from "./app";
 
 export default (req, res) => {
-  res.end(renderToString(<App />));
+  res.end(`<div id="root">${renderToString(<App />)}</div><script src="/browser.js"></script>`);
 };

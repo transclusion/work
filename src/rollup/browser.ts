@@ -18,6 +18,9 @@ export function getBrowserConfig(opts: Opts): RollupOptions[] {
   if (!browserConfig || !browserConfig.input) return [];
 
   const rootPath = path.resolve(cwd, browserConfig.context || ".");
+  const outputPath = browserConfig.basePath
+    ? path.resolve(cwd, "dist/browser", browserConfig.basePath)
+    : path.resolve(cwd, "dist/browser");
   const aliasConfig = pkg.alias || {};
   const rollupOpts: RollupOpts = extendRollupOpts(
     {
@@ -61,7 +64,7 @@ export function getBrowserConfig(opts: Opts): RollupOptions[] {
     return {
       input: path.resolve(rootPath, inputPath),
       output: {
-        dir: path.resolve(cwd, "dist/browser"),
+        dir: outputPath,
         format: "iife",
         sourcemap: true
       },

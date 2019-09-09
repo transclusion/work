@@ -51,7 +51,8 @@ if (args[0] === "build") {
     // registerBabel();
     dev({
       cwd: process.cwd(),
-      logger
+      logger,
+      port: (params.p || params.port) as any
     }).listen();
   } catch (err) {
     logger.error(err.stack);
@@ -60,7 +61,8 @@ if (args[0] === "build") {
 } else if (args[0] === "start") {
   start({
     cwd: process.cwd(),
-    logger
+    logger,
+    port: (params.p || params.port) as any
   }).catch((err: any) => {
     logger.error(err.stack);
     process.exit(1);

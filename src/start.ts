@@ -1,38 +1,27 @@
-import fs from "fs";
 import micro from "micro";
 import mimeTypes from "mime-types";
 import path from "path";
-import { findConfig, matchRoute, readFile } from "./helpers";
+import { findConfig, matchRoute, matchStaticFile, readFile } from "./helpers";
 import { Logger } from "./types";
 
 interface Opts {
   cwd: string;
   logger: Logger;
+  port?: string | number;
 }
 
 async function start(opts: Opts) {
   return new Promise(resolve => {
     const { cwd, logger } = opts;
     const config = findConfig(cwd);
-    const port = (config.server && config.server.port) || 3000;
-
-    function matchStaticFile(url: string): Promise<string | null> {
-      return new Promise(resolve => {
-        if (url === "/") return resolve(null);
-        const filePath = path.resolve(cwd, "dist/browser", `.${url}`);
-        fs.access(filePath, (fs as any).F_OK, err => {
-          if (err) resolve(null);
-          else resolve(filePath);
-        });
-      });
-    }
+    const port = opts.port || 3000;
 
     async function handler(req: any, res: any) {
       try {
         // log request
         logger.info(req.method, req.url);
 
-        const staticFile = await matchStaticFile(req.url);
+        const staticFile = await matchStaticFile(cwd, config, req.url);
 
         if (staticFile) {
           const mimeType = mimeTypes.lookup(staticFile);

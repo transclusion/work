@@ -1,16 +1,16 @@
-import fs from "fs";
 import micro from "micro";
 import mimeTypes from "mime-types";
 import path from "path";
 import { Worker } from "worker_threads";
 import { eventSource } from "./eventSource";
-import { findConfig, matchRoute, readFile } from "./helpers";
+import { findConfig, matchRoute, matchStaticFile, readFile } from "./helpers";
 import { reloadScript } from "./reload";
 import { Logger } from "./types";
 
 interface Opts {
   cwd?: string;
   logger?: Logger;
+  port?: string | number | undefined;
 }
 
 const DEFAULT_LOGGER: Logger = {
@@ -30,7 +30,7 @@ function dev(opts: Opts) {
   const logger = opts.logger || DEFAULT_LOGGER;
   const cwd = opts.cwd;
   const config = findConfig(cwd);
-  const port = (config.server && config.server.port) || 3000;
+  const port = opts.port || 3000;
 
   const listen = (cb?: ListenCallback) => {
     const es = eventSource();
@@ -63,8 +63,9 @@ function dev(opts: Opts) {
     });
 
     workers.browser.on("message", event => {
-      console.log(event);
-      if (event.code === "ERROR") {
+      if (event.code === "BUNDLE_END") {
+        logger.info("bundled", event.input);
+      } else if (event.code === "ERROR") {
         logger.error(event.error.stack);
         process.exit(1);
       } else if (event.code === "FATAL") {
@@ -79,8 +80,8 @@ function dev(opts: Opts) {
     });
 
     workers.server.on("message", event => {
-      console.log(event);
       if (event.code === "BUNDLE_END") {
+        logger.info("bundled", event.input);
         event.output.forEach((distPrefix: string) => {
           Object.keys(require.cache).forEach(filePath => {
             if (filePath.startsWith(distPrefix)) {
@@ -98,17 +99,6 @@ function dev(opts: Opts) {
       es.send("server", event);
     });
 
-    function matchStaticFile(url: string): Promise<string | null> {
-      return new Promise(resolve => {
-        if (url === "/") return resolve(null);
-        const filePath = path.resolve(cwd, "dist/browser", `.${url}`);
-        fs.access(filePath, (fs as any).F_OK, err => {
-          if (err) resolve(null);
-          else resolve(filePath);
-        });
-      });
-    }
-
     async function handler(req: any, res: any) {
       try {
         if (req.url === "/__work__/reload.js") {
@@ -125,7 +115,7 @@ function dev(opts: Opts) {
         // log request
         logger.info(req.method, req.url);
 
-        const staticFile = await matchStaticFile(req.url);
+        const staticFile = await matchStaticFile(cwd, config, req.url);
 
         if (staticFile) {
           const mimeType = mimeTypes.lookup(staticFile);

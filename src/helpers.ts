@@ -71,3 +71,14 @@ export function readFile(filePath: string) {
     });
   });
 }
+
+export function matchStaticFile(cwd: string, _: Config, url: string): Promise<string | null> {
+  return new Promise(resolve => {
+    if (url === "/") return resolve(null);
+    const filePath = path.resolve(cwd, "dist/browser", `.${url}`);
+    fs.access(filePath, (fs as any).F_OK, err => {
+      if (err) resolve(null);
+      else resolve(filePath);
+    });
+  });
+}
