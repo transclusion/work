@@ -1,3 +1,4 @@
+import cpx from "cpx";
 import path from "path";
 import * as rollup from "rollup";
 import { workerData, parentPort } from "worker_threads";
@@ -18,40 +19,49 @@ const plugins = findPlugins(cwd, config.plugins || []);
 const envConfig = findEnvConfig(cwd);
 const pkg = require(path.resolve(cwd, "package.json"));
 
-function cloneEvent(event: any) {
+function cloneRollupEvent(event: any) {
   if (event.code === "BUNDLE_END") {
     return {
-      code: "BUNDLE_END",
+      code: "rollup.BUNDLE_END",
       input: event.input,
       output: event.output
     };
   }
   if (event.code === "ERROR") {
     return {
-      code: "ERROR",
+      code: "rollup.ERROR",
       error: { message: event.error.message, stack: event.error.stack }
     };
   }
   if (event.code === "FATAL") {
     return {
-      code: "FATAL",
+      code: "rollup.FATAL",
       error: { message: event.error.message, stack: event.error.stack }
     };
   }
-  return { code: event.code };
+  return { code: `rollup.${event.code}` };
 }
 
-const rollupConfig = buildRollupConfig({
-  buildConfig,
-  envConfig,
-  cwd,
-  pkg,
-  pluginFn: config.extendRollup || noopPluginFn,
-  plugins
-});
+if (["browser", "server"].indexOf(buildConfig.target) > -1) {
+  const rollupConfig = buildRollupConfig({
+    buildConfig,
+    envConfig,
+    cwd,
+    pkg,
+    pluginFn: config.extendRollup || noopPluginFn,
+    plugins
+  });
 
-const watcher = rollup.watch(rollupConfig as any);
+  const watcher = rollup.watch(rollupConfig as any);
 
-watcher.on("event", event => {
-  _parentPort.postMessage(cloneEvent(event));
-});
+  watcher.on("event", event => {
+    _parentPort.postMessage(cloneRollupEvent(event));
+  });
+} else if (buildConfig.target === "static") {
+  cpx.copy(buildConfig.src, buildConfig.dir, (err: any) => {
+    if (err) _parentPort.postMessage({ code: "cpx.error", message: err.message, stack: err.stack });
+    else _parentPort.postMessage({ code: "cpx.success" });
+  });
+} else {
+  throw new Error(`Unknown target: ${buildConfig.target}`);
+}

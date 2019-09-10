@@ -58,19 +58,13 @@ export async function appHandler(
 
   if (!match) {
     res.writeHead(404, { "content-type": "text/plain" });
-    res.end(`not found: ${req.url}`);
+    res.end(`Not found: ${req.url}`);
     return;
   }
 
   const build = matchBuild(cwd, config.builds || [], match.path);
 
-  if (!build) {
-    res.writeHead(500, { "content-type": "text/plain" });
-    res.end(`build not found: ${match.path}`);
-    return;
-  }
-
-  if (build.target === "browser") {
+  if ((build && build.target === "browser") || !build) {
     const staticFile = path.resolve(cwd, match.path);
     const mimeType = mimeTypes.lookup(staticFile);
     const buf = await readFile(staticFile);
@@ -79,20 +73,24 @@ export async function appHandler(
     res.end(buf);
 
     return;
-  } else if (build.target === "server") {
+  } else if (build && build.target === "server") {
     const serverFile = resolveBuildFile(path.resolve(cwd, build.dir), match.path);
 
     require(serverFile)(req, {
       end(body: string) {
         return res.end(
-          body.replace("</body>", '<script src="/__work__/reload.js"></script></body>')
+          String(body).replace("</body>", '<script src="/__work__/reload.js"></script></body>')
         );
       },
       __proto__: res
     });
     return;
+  } else if (build) {
+    res.writeHead(500, { "content-type": "text/plain" });
+    res.end(`Unknown build target: ${build.target}`);
+    return;
   }
 
-  res.writeHead(500, { "content-type": "text/plain" });
-  res.end(`unknown build target: ${build.target}`);
+  res.writeHead(404, { "content-type": "text/plain" });
+  res.end(`Not found: ${req.url}`);
 }

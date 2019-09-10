@@ -1,4 +1,5 @@
 import { IncomingMessage, ServerResponse } from "http";
+import { ModuleFormat } from "rollup";
 import { RollupOpts } from "./rollup/types";
 
 export type IdentityFn<Identity> = (value: Identity) => Identity;
@@ -18,7 +19,8 @@ export interface ServerConfig {
 
 export interface BuildConfig {
   src: string;
-  target: "browser" | "server";
+  target: "browser" | "server" | "static";
+  format?: ModuleFormat;
   dir: string;
 }
 

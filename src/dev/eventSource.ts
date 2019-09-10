@@ -3,15 +3,13 @@ import { Middleware } from "../types";
 const RELOAD_SCRIPT = `(function () {
   'use strict';
   var es = new EventSource('/__work__/events');
-  es.addEventListener('client', function (evt) {
+  es.addEventListener('browser', function (evt) {
     var msg = JSON.parse(evt.data);
-    console.log('client:', msg.code);
-    if (msg.code === 'BUNDLE_END') window.location.reload();
+    if (msg.code === 'rollup.BUNDLE_END') window.location.reload();
   });
   es.addEventListener('server', function (evt) {
     var msg = JSON.parse(evt.data);
-    console.log('client:', msg.code);
-    if (msg.code === 'BUNDLE_END') window.location.reload();
+    if (msg.code === 'rollup.BUNDLE_END') window.location.reload();
   });
 }());`;
 

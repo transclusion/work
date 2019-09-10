@@ -37,11 +37,11 @@ function dev(opts: Opts) {
 
     workers.forEach(({ config, worker }) => {
       worker.on("error", event => {
-        console.log("TODO: workers.browser.error", event);
+        console.log(`TODO: ${config.target} worker:`, event);
       });
       worker.on("message", event => {
-        if (event.code === "BUNDLE_END") {
-          logger.info("built", path.relative(cwd, event.input));
+        if (event.code === "rollup.BUNDLE_END") {
+          logger.info("Built", path.relative(cwd, event.input));
           if (config.target === "server") {
             event.output.forEach((distPrefix: string) => {
               Object.keys(require.cache).forEach(filePath => {
@@ -51,10 +51,10 @@ function dev(opts: Opts) {
               });
             });
           }
-        } else if (event.code === "ERROR") {
+        } else if (event.code === "rollup.ERROR") {
           logger.error(event.error.stack);
           process.exit(1);
-        } else if (event.code === "FATAL") {
+        } else if (event.code === "rollup.FATAL") {
           logger.error(event.error.stack);
           process.exit(1);
         }
@@ -65,7 +65,6 @@ function dev(opts: Opts) {
     async function handler(req: any, res: any) {
       try {
         await es.middleware(req, res, async () => {
-          // log request
           logger.info(req.method, req.url);
           await appHandler(cwd, config, req, res);
         });

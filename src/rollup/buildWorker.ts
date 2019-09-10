@@ -1,3 +1,4 @@
+import cpx from "cpx";
 import path from "path";
 import * as rollup from "rollup";
 import { workerData, parentPort } from "worker_threads";
@@ -34,10 +35,18 @@ const rollupConfig = buildRollupConfig({
   minify: true
 });
 
-rollupBuild(rollupConfig)
-  .then(() => {
-    _parentPort.postMessage({ type: "complete" });
-  })
-  .catch(err => {
-    _parentPort.postMessage({ error: "error", message: err.message, stack: err.stack });
+if (["browser", "server"].indexOf(buildConfig.target) > -1) {
+  rollupBuild(rollupConfig)
+    .then(() => {
+      _parentPort.postMessage({ type: "complete" });
+    })
+    .catch(err => {
+      _parentPort.postMessage({ error: "error", message: err.message, stack: err.stack });
+    });
+} else if (buildConfig.target === "static") {
+  cpx.copy(buildConfig.src, buildConfig.dir, (err: any) => {
+    if (err) throw err;
   });
+} else {
+  throw new Error(`Unknown target: ${buildConfig.target}`);
+}

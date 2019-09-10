@@ -55,7 +55,7 @@ export function buildRollupConfig(opts: Opts): RollupOptions {
         "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
         ...Object.keys(envConfig).reduce(
           (curr, k) => {
-            curr[`process.env.${k}`] = envConfig[k];
+            curr[`process.env.${k}`] = JSON.stringify(envConfig[k]);
             return curr;
           },
           {} as any
@@ -71,7 +71,7 @@ export function buildRollupConfig(opts: Opts): RollupOptions {
     input: path.resolve(cwd, buildConfig.src),
     output: {
       dir: dirPath,
-      format: buildConfig.target === "server" ? "cjs" : "iife",
+      format: buildConfig.format || (buildConfig.target === "server" ? "cjs" : "iife"),
       sourcemap: true
     },
     external: rollupOpts.external,
