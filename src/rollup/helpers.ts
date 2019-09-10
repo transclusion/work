@@ -1,5 +1,5 @@
-import { BuildConfig, PluginFn } from "../types";
-import { RollupOpts } from "./types";
+import {BuildConfig, PluginFn} from '../types'
+import {RollupOpts} from './types'
 
 export function applyRollupPlugins(
   rollupOpts: RollupOpts,
@@ -7,6 +7,6 @@ export function applyRollupPlugins(
   pluginFns: PluginFn[]
 ): RollupOpts {
   return pluginFns.reduce((currRollupOpts, pluginFn) => {
-    return pluginFn(currRollupOpts, buildConfig);
-  }, rollupOpts);
+    return pluginFn(currRollupOpts, buildConfig)
+  }, rollupOpts)
 }

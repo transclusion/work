@@ -1,4 +1,4 @@
-import { Middleware } from "../types";
+import {Middleware} from '../types'
 
 const RELOAD_SCRIPT = `(function () {
   'use strict';
@@ -11,45 +11,47 @@ const RELOAD_SCRIPT = `(function () {
     var msg = JSON.parse(evt.data);
     if (msg.code === 'rollup.BUNDLE_END') window.location.reload();
   });
-}());`;
+}());`
 
 export function eventSource() {
-  const sockets: any[] = [];
+  const sockets: any[] = []
 
   const addSocket = (socket: any) => {
     socket.writeHead(200, {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive"
-    });
-    socket.write("\n");
-    sockets.push(socket);
-  };
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+      'Content-Type': 'text/event-stream'
+    })
+    socket.write('\n')
+    sockets.push(socket)
+  }
 
   const middleware: Middleware = (req, res, next) => {
-    if (req.url === "/__work__/reload.js") {
-      res.end(RELOAD_SCRIPT);
-      return;
-    } else if (req.url === "/__work__/events") {
-      addSocket(res);
-      req.on("close", () => removeSocket(res));
-      return;
+    if (req.url === '/__work__/reload.js') {
+      res.end(RELOAD_SCRIPT)
+      return
+    } else if (req.url === '/__work__/events') {
+      addSocket(res)
+      req.on('close', () => removeSocket(res))
+      return
     } else {
-      return next();
+      return next()
     }
-  };
+  }
 
   const removeSocket = (socket: any) => {
-    const idx = sockets.indexOf(socket);
-    if (idx > -1) sockets.splice(idx, 1);
-  };
+    const idx = sockets.indexOf(socket)
+    if (idx > -1) {
+      sockets.splice(idx, 1)
+    }
+  }
 
   const send = (type: string, msg: any) => {
     sockets.forEach(socket => {
-      socket.write(`event: ${type}\n`);
-      socket.write(`data: ${JSON.stringify(msg)}\n\n`);
-    });
-  };
+      socket.write(`event: ${type}\n`)
+      socket.write(`data: ${JSON.stringify(msg)}\n\n`)
+    })
+  }
 
-  return { middleware, send };
+  return {middleware, send}
 }
