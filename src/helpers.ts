@@ -23,11 +23,11 @@ function requireEnvFile(filePath: string) {
 }
 
 export function findEnvConfig(cwd: string) {
-  const envName = process.env.NODE_ENV;
+  const envName = process.env.NODE_ENV || "development";
   return {
     ...requireEnvFile(path.resolve(cwd, ".env")),
-    ...(envName ? requireEnvFile(path.resolve(cwd, `.env.${envName}`)) : {}),
-    ...(envName ? requireEnvFile(path.resolve(cwd, `.env.${envName}.local`)) : {})
+    ...requireEnvFile(path.resolve(cwd, `.env.${envName}`)),
+    ...requireEnvFile(path.resolve(cwd, `.env.${envName}.local`))
   };
 }
 

@@ -7,6 +7,7 @@ import resolve from "rollup-plugin-node-resolve";
 import json from "rollup-plugin-json";
 import replace from "rollup-plugin-replace";
 import { terser } from "rollup-plugin-terser";
+import tsConfigPaths from "rollup-plugin-ts-paths";
 import { noopPluginFn } from "../helpers";
 import { BuildConfig, Config, PluginFn } from "../types";
 import { applyRollupPlugins } from "./helpers";
@@ -52,7 +53,7 @@ export function buildRollupConfig(opts: Opts): RollupOptions {
         sourceMap: true
       },
       replace: {
-        "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
+        "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "development"),
         ...Object.keys(envConfig).reduce(
           (curr, k) => {
             curr[`process.env.${k}`] = JSON.stringify(envConfig[k]);
@@ -76,6 +77,7 @@ export function buildRollupConfig(opts: Opts): RollupOptions {
     },
     external: rollupOpts.external,
     plugins: [
+      tsConfigPaths({ tsConfigDirectory: cwd }),
       babel(rollupOpts.babel),
       alias(rollupOpts.alias),
       json(),

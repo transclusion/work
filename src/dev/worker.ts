@@ -17,6 +17,7 @@ if (!config.builds) throw new Error("No configured builds");
 const buildConfig = config.builds[buildConfigIdx];
 const plugins = findPlugins(cwd, config.plugins || []);
 const envConfig = findEnvConfig(cwd);
+console.log(envConfig);
 const pkg = require(path.resolve(cwd, "package.json"));
 
 function cloneRollupEvent(event: any) {
