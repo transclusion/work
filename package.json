@@ -1,6 +1,6 @@
 {
   "name": "@transclusion/work",
-  "version": "1.0.0-alpha.6",
+  "version": "1.0.0-alpha.7",
   "description": "**_It just works_ so you can stop configuring and get s\\*\\*t done!**",
   "main": "dist/cjs/index.js",
   "bin": {
