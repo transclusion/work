@@ -1,8 +1,8 @@
 import path from "path";
 import { Worker } from "worker_threads";
 
-export function initBuildWorker(cwd: string, buildConfigIdx: number, target: string) {
-  return new Worker(path.resolve(__dirname, "../rollup/buildWorker.js"), {
+export function initWorker(cwd: string, buildConfigIdx: number, target: string) {
+  return new Worker(path.resolve(__dirname, "./worker.js"), {
     env: {
       BABEL_ENV: target,
       NODE_ENV: process.env.NODE_ENV

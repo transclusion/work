@@ -3,7 +3,7 @@ import path from "path";
 import * as rollup from "rollup";
 import { workerData, parentPort } from "worker_threads";
 import { findConfig, findEnvConfig, findPlugins, noopPluginFn } from "../helpers";
-import { buildRollupConfig } from "./config";
+import { buildRollupConfig } from "../rollup/config";
 
 const cwd: string = workerData.cwd;
 const buildConfigIdx: number = workerData.buildConfigIdx;
@@ -51,16 +51,21 @@ if (["browser", "server"].indexOf(buildConfig.target) > -1) {
     pluginFn: config.extendRollup || noopPluginFn,
     plugins
   });
-
   const watcher = rollup.watch(rollupConfig as any);
-
   watcher.on("event", event => {
     _parentPort.postMessage(cloneRollupEvent(event));
   });
 } else if (buildConfig.target === "static") {
-  cpx.copy(buildConfig.src, buildConfig.dir, (err: any) => {
-    if (err) _parentPort.postMessage({ code: "cpx.error", message: err.message, stack: err.stack });
-    else _parentPort.postMessage({ code: "cpx.success" });
+  const watcher = cpx.watch(buildConfig.src, buildConfig.dir);
+  watcher.on("copy", evt => {
+    _parentPort.postMessage({ code: "cpx.copy", src: evt.srcPath, dest: evt.dstPath });
+  });
+  watcher.on("remove", evt => {
+    _parentPort.postMessage({ code: "cpx.remove", path: evt.path });
+  });
+  watcher.on("watch-error", evt => {
+    console.log("watch-error", evt);
+    _parentPort.postMessage({ code: "cpx.watch-error" });
   });
 } else {
   throw new Error(`Unknown target: ${buildConfig.target}`);

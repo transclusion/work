@@ -4,7 +4,7 @@ import { appHandler } from "../app";
 import { findConfig } from "../helpers";
 import { Logger } from "../types";
 import { eventSource } from "./eventSource";
-import { initWatchWorkers } from "./helpers";
+import { initWorkers } from "./helpers";
 
 interface Opts {
   cwd?: string;
@@ -33,14 +33,18 @@ function dev(opts: Opts) {
 
   const listen = (cb?: ListenCallback) => {
     const es = eventSource();
-    const workers = initWatchWorkers(cwd, config.builds);
+    const workers = initWorkers(cwd, config.builds);
 
     workers.forEach(({ config, worker }) => {
       worker.on("error", event => {
         console.log(`TODO: ${config.target} worker:`, event);
       });
       worker.on("message", event => {
-        if (event.code === "rollup.BUNDLE_END") {
+        if (event.code === "cpx.copy") {
+          logger.info("Copied", event.src, ">", event.dest);
+        } else if (event.code === "cpx.remove") {
+          logger.info("Removed", event.path);
+        } else if (event.code === "rollup.BUNDLE_END") {
           logger.info("Built", path.relative(cwd, event.input));
           if (config.target === "server") {
             event.output.forEach((distPrefix: string) => {

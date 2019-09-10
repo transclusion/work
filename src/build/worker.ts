@@ -3,7 +3,7 @@ import path from "path";
 import * as rollup from "rollup";
 import { workerData, parentPort } from "worker_threads";
 import { findConfig, findEnvConfig, findPlugins, noopPluginFn } from "../helpers";
-import { buildRollupConfig } from "./config";
+import { buildRollupConfig } from "../rollup/config";
 
 const cwd: string = workerData.cwd;
 const buildConfigIdx: number = workerData.buildConfigIdx;

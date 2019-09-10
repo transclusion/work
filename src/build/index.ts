@@ -1,6 +1,6 @@
 import { findConfig } from "../helpers";
 import { Logger } from "../types";
-import { initBuildWorker } from "./helpers";
+import { initWorker } from "./helpers";
 
 interface Opts {
   cwd?: string;
@@ -9,7 +9,7 @@ interface Opts {
 
 function rollupBuild(cwd: string, buildConfigIdx: number, target: string) {
   return new Promise((resolve, reject) => {
-    const worker = initBuildWorker(cwd, buildConfigIdx, target);
+    const worker = initWorker(cwd, buildConfigIdx, target);
     worker.on("message", event => {
       if (event.type === "complete") resolve();
       if (event.type === "error") reject(new Error(event.message));
