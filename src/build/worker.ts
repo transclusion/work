@@ -11,6 +11,9 @@ const buildConfigIdx: number = workerData.buildConfigIdx
 if (!cwd) {
   throw new Error('Missing `cwd` in workerData')
 }
+if (buildConfigIdx === undefined) {
+  throw new Error('Missing `buildConfigIdx` in workerData')
+}
 if (!parentPort) {
   throw new Error('Missing `parentPort`')
 }
@@ -27,17 +30,17 @@ const envConfig = findEnvConfig(cwd)
 // tslint:disable-next-line no-var-requires
 const pkg = require(path.resolve(cwd, 'package.json'))
 
-const rollupConfig = buildRollupConfig({
-  buildConfig,
-  cwd,
-  envConfig,
-  minify: true,
-  pkg,
-  pluginFn: config.extendRollup || noopPluginFn,
-  plugins
-})
-
 if (['browser', 'server'].indexOf(buildConfig.target) > -1) {
+  const rollupConfig = buildRollupConfig({
+    buildConfig,
+    cwd,
+    envConfig,
+    minify: true,
+    pkg,
+    pluginFn: config.extendRollup || noopPluginFn,
+    plugins
+  })
+
   rollupBuild(rollupConfig)
     .then(() => {
       _parentPort.postMessage({type: 'complete'})

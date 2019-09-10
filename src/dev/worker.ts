@@ -1,6 +1,6 @@
 import cpx from 'cpx'
 import path from 'path'
-import * as rollup from 'rollup'
+import {watch as rollupWatch} from 'rollup'
 import {parentPort, workerData} from 'worker_threads'
 import {findConfig, findEnvConfig, findPlugins, noopPluginFn} from '../helpers'
 import {buildRollupConfig} from '../rollup/config'
@@ -59,7 +59,7 @@ if (['browser', 'server'].indexOf(buildConfig.target) > -1) {
     pluginFn: config.extendRollup || noopPluginFn,
     plugins
   })
-  const watcher = rollup.watch(rollupConfig as any)
+  const watcher = rollupWatch([rollupConfig])
   watcher.on('event', event => {
     _parentPort.postMessage(cloneRollupEvent(event))
   })

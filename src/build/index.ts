@@ -7,7 +7,7 @@ interface Opts {
   logger?: Logger
 }
 
-function rollupBuild(cwd: string, buildConfigIdx: number, target: string) {
+function buildInWorker(cwd: string, buildConfigIdx: number, target: string) {
   return new Promise((resolve, reject) => {
     const worker = initWorker(cwd, buildConfigIdx, target)
     worker.on('message', event => {
@@ -30,7 +30,7 @@ async function build(opts: Opts) {
 
   await Promise.all(
     (config.builds || []).map((buildConfig, buildConfigIdx) => {
-      return rollupBuild(cwd, buildConfigIdx, buildConfig.target)
+      return buildInWorker(cwd, buildConfigIdx, buildConfig.target)
     })
   )
 }

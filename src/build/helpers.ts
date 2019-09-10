@@ -1,5 +1,5 @@
 import path from 'path'
-import rollup, {RollupOptions} from 'rollup'
+import {rollup, RollupOptions} from 'rollup'
 import {Worker} from 'worker_threads'
 
 export function initWorker(cwd: string, buildConfigIdx: number, target: string) {
@@ -17,7 +17,7 @@ export function initWorker(cwd: string, buildConfigIdx: number, target: string) 
 
 export async function rollupBuild(rollupConfig: RollupOptions) {
   const {output: outputOptions, ...inputOptions} = rollupConfig
-  const bundle = await rollup.rollup(inputOptions)
+  const bundle = await rollup(inputOptions)
   if (!outputOptions) {
     throw new Error('missing output options')
   }
