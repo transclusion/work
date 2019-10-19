@@ -31,8 +31,8 @@ module.exports = {
     {src: './server.js', target: 'server', dir: './dist'}
   ],
   routes: [
-    { src: '/static/(.*)', dest: './dist/static/$1' },
-    { src: '(.*)', dest: './dist/server.js' }
+    {src: '/static/(.*)', dest: './dist/static/$1'},
+    {src: '(.*)', dest: './dist/server.js'}
   ],
   extendRollup(rollupConfig) {
     // extend rollup config if needed
@@ -51,7 +51,7 @@ Create a file named `server.js`:
 
 ```js
 module.exports = function (req, res) {
-  res.writeHead(200, { 'content-type': 'text/html' })
+  res.writeHead(200, {'content-type': 'text/html'})
   res.end(`<!doctype html>
 <html>
   <body>
