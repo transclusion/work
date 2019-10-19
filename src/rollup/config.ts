@@ -22,6 +22,7 @@ interface Opts {
   }
   pluginFn: PluginFn
   plugins: Config[]
+  useBabel: boolean
 }
 
 export function buildRollupConfig(opts: Opts): RollupOptions {
@@ -76,7 +77,7 @@ export function buildRollupConfig(opts: Opts): RollupOptions {
       sourcemap: true
     },
     plugins: [
-      babel(rollupOpts.babel),
+      opts.useBabel && babel(rollupOpts.babel),
       alias(rollupOpts.alias),
       json(),
       resolve(rollupOpts.resolve),

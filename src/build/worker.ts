@@ -2,6 +2,7 @@ import cpx from 'cpx'
 import path from 'path'
 import {parentPort, workerData} from 'worker_threads'
 import {findConfig, findEnvConfig, findPlugins, noopPluginFn} from '../helpers'
+import {detectBabel} from '../lib/detectBabel'
 import {buildRollupConfig} from '../rollup/config'
 import {rollupBuild} from './helpers'
 
@@ -30,30 +31,37 @@ const envConfig = findEnvConfig(cwd)
 // tslint:disable-next-line no-var-requires
 const pkg = require(path.resolve(cwd, 'package.json'))
 
-if (['browser', 'server'].indexOf(buildConfig.target) > -1) {
-  const rollupConfig = buildRollupConfig({
-    buildConfig,
-    cwd,
-    envConfig,
-    minify: true,
-    pkg,
-    pluginFn: config.extendRollup || noopPluginFn,
-    plugins
-  })
+async function startWorker() {
+  const useBabel = await detectBabel({cwd})
 
-  rollupBuild(rollupConfig)
-    .then(() => {
-      _parentPort.postMessage({type: 'complete'})
+  if (['browser', 'server'].indexOf(buildConfig.target) > -1) {
+    const rollupConfig = buildRollupConfig({
+      buildConfig,
+      cwd,
+      envConfig,
+      minify: true,
+      pkg,
+      pluginFn: config.extendRollup || noopPluginFn,
+      plugins,
+      useBabel
     })
-    .catch(err => {
-      _parentPort.postMessage({error: 'error', message: err.message, stack: err.stack})
+
+    rollupBuild(rollupConfig)
+      .then(() => {
+        _parentPort.postMessage({type: 'complete'})
+      })
+      .catch(err => {
+        _parentPort.postMessage({error: 'error', message: err.message, stack: err.stack})
+      })
+  } else if (buildConfig.target === 'static') {
+    cpx.copy(buildConfig.src, buildConfig.dir, (err: any) => {
+      if (err) {
+        throw err
+      }
     })
-} else if (buildConfig.target === 'static') {
-  cpx.copy(buildConfig.src, buildConfig.dir, (err: any) => {
-    if (err) {
-      throw err
-    }
-  })
-} else {
-  throw new Error(`Unknown target: ${buildConfig.target}`)
+  } else {
+    throw new Error(`Unknown target: ${buildConfig.target}`)
+  }
 }
+
+startWorker()
