@@ -8,7 +8,7 @@
 
 `@transclusion/work` is a runtime that provides a **highly opinionated environment for quickly developing web apps** with Node.js. Becauce it’s built on top of `micro`, it works particularly well with the `now` platform.
 
-It’s about:
+## What does it do?
 
 - **Understanding** both modern JavaScript and TypeScript (with no configuration). Since it uses `rollup` under the hood, the bundles are as small and optimized and possible.
 - Running a **development server** with hot-reloading.
@@ -25,15 +25,18 @@ npm install @transclusion/work
 Create a file called `work.config.js` in the root of the project:
 
 ```js
-export default {
-  client: {
-    input: ['/main.js']
-  },
-  server: {
-    routes: { '/': './ssr.js' }
-  },
-  rollup: {
+module.exports = {
+  builds: [
+    {src: './browser.js', target: 'browser', dir: './dist/static'},
+    {src: './server.js', target: 'server', dir: './dist'}
+  ],
+  routes: [
+    { src: '/static/(.*)', dest: './dist/static/$1' },
+    { src: '(.*)', dest: './dist/server.js' }
+  ],
+  extendRollup(rollupConfig) {
     // extend rollup config if needed
+    return {...rollupConfig}
   }
 }
 ```
