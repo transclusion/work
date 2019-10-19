@@ -41,6 +41,27 @@ module.exports = {
 }
 ```
 
+Create a file named `browser.js`:
+
+```js
+document.body.innerHTML = 'Hello from the browser'
+```
+
+Create a file named `server.js`:
+
+```js
+module.exports = function (req, res) {
+  res.writeHead(200, { 'content-type': 'text/html' })
+  res.end(`<!doctype html>
+<html>
+  <body>
+    Hello from the server
+    <script src="/static/browser.js"></script>
+  </body>
+</html>`)
+}
+```
+
 Run the development server:
 
 ```sh
