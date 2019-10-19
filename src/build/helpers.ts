@@ -2,7 +2,7 @@ import path from 'path'
 import {rollup, RollupOptions} from 'rollup'
 import {Worker} from 'worker_threads'
 
-export function initWorker(cwd: string, buildConfigIdx: number, target: string) {
+export function initWorker(cwd: string, configIdx: number, buildConfigIdx: number, target: string) {
   return new Worker(path.resolve(__dirname, './worker.js'), {
     env: {
       BABEL_ENV: target,
@@ -10,6 +10,7 @@ export function initWorker(cwd: string, buildConfigIdx: number, target: string) 
     },
     workerData: {
       buildConfigIdx,
+      configIdx,
       cwd
     }
   } as any)
@@ -18,8 +19,10 @@ export function initWorker(cwd: string, buildConfigIdx: number, target: string) 
 export async function rollupBuild(rollupConfig: RollupOptions) {
   const {output: outputOptions, ...inputOptions} = rollupConfig
   const bundle = await rollup(inputOptions)
+
   if (!outputOptions) {
     throw new Error('missing output options')
   }
+
   return bundle.write(outputOptions)
 }

@@ -9,9 +9,15 @@ function dep(m: any) {
   return m.default || m
 }
 
-export function findConfig(cwd: string): Config {
+export function findConfig(cwd: string): Config[] {
   const configPath = path.resolve(cwd, 'work.config.js')
-  return dep(require(configPath))
+  const config = dep(require(configPath))
+
+  if (Array.isArray(config)) {
+    return config
+  }
+
+  return [config]
 }
 
 function requireEnvFile(filePath: string) {

@@ -41,9 +41,10 @@ export type PluginFn = (rollupOpts: RollupOpts, buildConfig: BuildConfig) => Rol
 
 export interface Config {
   builds?: BuildConfig[]
-  routes?: RouteConfig[]
-  plugins?: PluginConfig
   extendRollup?: PluginFn
+  plugins?: PluginConfig
+  port?: number
+  routes?: RouteConfig[]
 }
 
 export interface Logger {

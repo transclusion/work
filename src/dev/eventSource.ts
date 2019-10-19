@@ -1,4 +1,6 @@
+import {ServerResponse} from 'http'
 import {Middleware} from '../types'
+import {EventSource} from './types'
 
 const EVENTS_ENDPOINT = '/__work__/events'
 const RELOAD_SCRIPT_ENDPOINT = '/__work__/reload.js'
@@ -36,10 +38,10 @@ const RELOAD_SCRIPT = `;(function() {
   }
 })()`
 
-export function eventSource() {
+export function eventSource(): EventSource {
   const sockets: any[] = []
 
-  const addSocket = (socket: any) => {
+  const addSocket = (socket: ServerResponse) => {
     socket.writeHead(200, {
       'Cache-Control': 'no-cache',
       Connection: 'keep-alive',

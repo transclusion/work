@@ -39,8 +39,7 @@ if (args[0] === 'build') {
   try {
     dev({
       cwd: process.cwd(),
-      logger,
-      port: (params.p || params.port) as any
+      logger
     }).listen()
   } catch (err) {
     logger.error(err.stack)

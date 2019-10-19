@@ -7,12 +7,16 @@ import {buildRollupConfig} from '../rollup/config'
 import {rollupBuild} from './helpers'
 
 const cwd: string = workerData.cwd
+const configIdx: number = workerData.configIdx
 const buildConfigIdx: number = workerData.buildConfigIdx
 
-if (!cwd) {
+if (typeof cwd !== 'string') {
   throw new Error('Missing `cwd` in workerData')
 }
-if (buildConfigIdx === undefined) {
+if (typeof configIdx !== 'number') {
+  throw new Error('Missing `configIdx` in workerData')
+}
+if (typeof buildConfigIdx !== 'number') {
   throw new Error('Missing `buildConfigIdx` in workerData')
 }
 if (!parentPort) {
@@ -21,7 +25,8 @@ if (!parentPort) {
 
 // tslint:disable-next-line variable-name
 const _parentPort = parentPort
-const config = findConfig(cwd)
+const configs = findConfig(cwd)
+const config = configs[configIdx]
 if (!config.builds) {
   throw new Error('No configured builds')
 }

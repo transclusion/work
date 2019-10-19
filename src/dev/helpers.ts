@@ -2,10 +2,7 @@ import path from 'path'
 import {Worker} from 'worker_threads'
 import {BuildConfig} from '../types'
 
-export function initWorkers(cwd: string, builds?: BuildConfig[]) {
-  if (!builds) {
-    return []
-  }
+export function initWorkers(cwd: string, builds: BuildConfig[], configIdx: number) {
   return builds.map((buildConfig, buildConfigIdx) => {
     return {
       buildConfig,
@@ -16,6 +13,7 @@ export function initWorkers(cwd: string, builds?: BuildConfig[]) {
         },
         workerData: {
           buildConfigIdx,
+          configIdx,
           cwd
         }
       } as any)
