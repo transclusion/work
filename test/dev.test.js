@@ -12,10 +12,6 @@ function createLogger() {
   return { error: jest.fn(), info: jest.fn() };
 }
 
-// function createLogger() {
-//   return { error: console.error, info: console.log };
-// }
-
 describe("@transclusion/work.dev", () => {
   it("should serve basic app", done => {
     const logger = createLogger();
