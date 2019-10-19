@@ -38,7 +38,10 @@ function cloneRollupEvent(event: any) {
   if (event.code === 'ERROR') {
     return {
       code: 'rollup.ERROR',
-      error: {message: event.error.message, stack: event.error.stack}
+      error: {
+        message: event.error.message,
+        stack: event.error.stack ? event.error.stack.replace(cwd, '.') : null
+      }
     }
   }
   if (event.code === 'FATAL') {

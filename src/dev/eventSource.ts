@@ -1,17 +1,40 @@
 import {Middleware} from '../types'
 
-const RELOAD_SCRIPT = `(function () {
-  'use strict';
-  var es = new EventSource('/__work__/events');
-  es.addEventListener('browser', function (evt) {
-    var msg = JSON.parse(evt.data);
-    if (msg.code === 'rollup.BUNDLE_END') window.location.reload();
-  });
-  es.addEventListener('server', function (evt) {
-    var msg = JSON.parse(evt.data);
-    if (msg.code === 'rollup.BUNDLE_END') window.location.reload();
-  });
-}());`
+const EVENTS_ENDPOINT = '/__work__/events'
+const RELOAD_SCRIPT_ENDPOINT = '/__work__/reload.js'
+const RELOAD_SCRIPT = `;(function() {
+  'use strict'
+  var es = new EventSource('${EVENTS_ENDPOINT}')
+  es.addEventListener('browser', function(evt) {
+    var msg = JSON.parse(evt.data)
+    if (msg.code === 'rollup.BUNDLE_END') window.location.reload()
+  })
+  es.addEventListener('server', function(evt) {
+    var msg = JSON.parse(evt.data)
+    if (msg.code === 'rollup.BUNDLE_END') window.location.reload()
+    if (msg.code === 'rollup.ERROR') displayError(msg.error)
+  })
+  function displayError(error) {
+    var errorElement = document.getElementById('__work_error')
+    if (!errorElement) {
+      errorElement = document.createElement('pre')
+      errorElement.id = '__work_error'
+      errorElement.style.position = 'absolute'
+      errorElement.style.top = '0'
+      errorElement.style.left = '0'
+      errorElement.style.width = '100%'
+      errorElement.style.height = '100%'
+      errorElement.style.overflow = 'auto'
+      errorElement.style.background = '#fdd'
+      errorElement.style.margin = '0'
+      errorElement.style.padding = '16px'
+      errorElement.style.font = '14px/20px SF Mono,Menlo,monospace'
+      errorElement.style.boxSizing = 'border-box'
+      document.body.appendChild(errorElement)
+    }
+    errorElement.innerHTML = error.stack
+  }
+})()`
 
 export function eventSource() {
   const sockets: any[] = []
@@ -27,10 +50,10 @@ export function eventSource() {
   }
 
   const middleware: Middleware = (req, res, next) => {
-    if (req.url === '/__work__/reload.js') {
+    if (req.url === RELOAD_SCRIPT_ENDPOINT) {
       res.end(RELOAD_SCRIPT)
       return
-    } else if (req.url === '/__work__/events') {
+    } else if (req.url === EVENTS_ENDPOINT) {
       addSocket(res)
       req.on('close', () => removeSocket(res))
       return

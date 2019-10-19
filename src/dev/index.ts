@@ -62,7 +62,6 @@ function dev(opts: Opts) {
           }
         } else if (event.code === 'rollup.ERROR') {
           logger.error(event.error.stack)
-          process.exit(1)
         } else if (event.code === 'rollup.FATAL') {
           logger.error(event.error.stack)
           process.exit(1)
