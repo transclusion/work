@@ -69,8 +69,7 @@ export async function appHandler(
     const mimeType = mimeTypes.lookup(staticFile)
 
     res.writeHead(200, {'Content-Type': mimeType || 'text/plain'})
-    fs.createReadStream(staticFile).pipe(res)
-
+    fs.createReadStream(staticFile, {encoding: 'utf8', end: 10}).pipe(res)
     return
   } else if (build && build.target === 'server') {
     const serverFile = resolveBuildFile(path.resolve(cwd, build.dir), match.path)
