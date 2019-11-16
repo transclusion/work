@@ -1,15 +1,15 @@
-"use strict";
+'use strict'
 
 module.exports = {
   presets: [
-    "@babel/preset-typescript",
+    '@babel/preset-typescript',
     [
-      "@babel/preset-env",
+      '@babel/preset-env',
       {
         targets: {
-          node: "current"
+          node: 'current'
         }
       }
     ]
   ]
-};
+}

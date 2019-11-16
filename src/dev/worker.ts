@@ -1,10 +1,12 @@
 import cpx from 'cpx'
 import path from 'path'
 import {watch as rollupWatch} from 'rollup'
-import {parentPort, workerData} from 'worker_threads'
+// import {parentPort, workerData} from 'worker_threads'
 import {findConfig, findEnvConfig, findPlugins, noopPluginFn} from '../helpers'
 import {detectBabel} from '../lib/detectBabel'
 import {buildRollupConfig} from '../rollup/config'
+
+const workerData = JSON.parse(process.env.__DATA || '{}')
 
 const cwd: string = workerData.cwd
 const configIdx: number = workerData.configIdx
@@ -19,12 +21,12 @@ if (typeof configIdx !== 'number') {
 if (typeof buildConfigIdx !== 'number') {
   throw new Error('Missing `buildConfigIdx` in workerData')
 }
-if (!parentPort) {
-  throw new Error('Missing `parentPort`')
-}
+// if (!parentPort) {
+//   throw new Error('Missing `parentPort`')
+// }
 
 // tslint:disable-next-line variable-name
-const _parentPort = parentPort
+// const _parentPort = parentPort
 const configs = findConfig(cwd)
 const config = configs[configIdx]
 if (!config.builds) {
@@ -77,20 +79,24 @@ async function startWorker() {
     })
     const watcher = rollupWatch([rollupConfig])
     watcher.on('event', event => {
-      _parentPort.postMessage(cloneRollupEvent(event))
+      // _parentPort.postMessage(cloneRollupEvent(event))
+      ;(process as any).send(cloneRollupEvent(event))
     })
   } else if (buildConfig.target === 'static') {
     const watcher = cpx.watch(buildConfig.src, buildConfig.dir)
     watcher.on('copy', evt => {
-      _parentPort.postMessage({code: 'cpx.copy', src: evt.srcPath, dest: evt.dstPath})
+      // _parentPort.postMessage({code: 'cpx.copy', src: evt.srcPath, dest: evt.dstPath})
+      ;(process as any).send({code: 'cpx.copy', src: evt.srcPath, dest: evt.dstPath})
     })
     watcher.on('remove', evt => {
-      _parentPort.postMessage({code: 'cpx.remove', path: evt.path})
+      // _parentPort.postMessage({code: 'cpx.remove', path: evt.path})
+      ;(process as any).send({code: 'cpx.remove', path: evt.path})
     })
     watcher.on('watch-error', evt => {
       // tslint:disable-next-line no-console
       console.log('TODO: watch-error', evt)
-      _parentPort.postMessage({code: 'cpx.watch-error'})
+      // _parentPort.postMessage({code: 'cpx.watch-error'})
+      ;(process as any).send({code: 'cpx.watch-error'})
     })
   } else {
     throw new Error(`Unknown target: ${buildConfig.target}`)

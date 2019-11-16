@@ -2,7 +2,11 @@
 
 const path = require('path')
 const request = require('superagent')
-const work = require('../src')
+const work = require('..')
+
+function fixturePath(name) {
+  return path.resolve(__dirname, '../../test/fixtures', name)
+}
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -12,10 +16,10 @@ function createLogger() {
   return {error: jest.fn(), info: jest.fn()}
 }
 
-describe('@transclusion/work.dev', () => {
+describe('dev', () => {
   it('should serve basic app', done => {
     const logger = createLogger()
-    const cwd = path.resolve(__dirname, 'fixtures/basic')
+    const cwd = fixturePath('basic')
     const ctx = work.dev({cwd, logger})
     ctx.listen(async ctx => {
       expect(ctx.servers.length).toBe(1)
@@ -36,7 +40,7 @@ describe('@transclusion/work.dev', () => {
 
   it('should serve react app', done => {
     const logger = createLogger()
-    const cwd = path.resolve(__dirname, 'fixtures/react')
+    const cwd = fixturePath('react')
     const ctx = work.dev({cwd, logger})
     ctx.listen(async ctx => {
       expect(ctx.servers.length).toBe(1)
@@ -57,7 +61,28 @@ describe('@transclusion/work.dev', () => {
 
   it('should serve babel app', done => {
     const logger = createLogger()
-    const cwd = path.resolve(__dirname, 'fixtures/babel')
+    const cwd = fixturePath('babel')
+    const ctx = work.dev({cwd, logger})
+    ctx.listen(async ctx => {
+      expect(ctx.servers.length).toBe(1)
+      const port = ctx.servers[0].port
+      await delay(500)
+      const res = await request.get(`http://localhost:${port}/`)
+      await delay(500)
+      ctx.close()
+      expect(res.text).toContain(`<div id="root">Hello, Foo!</div>`)
+      expect(logger.error.mock.calls).toEqual([])
+      expect(logger.info.mock.calls).toEqual([
+        [`Listening at http://localhost:${port}`],
+        ['GET', '/']
+      ])
+      done()
+    })
+  })
+
+  it('should serve babel+typescript app', done => {
+    const logger = createLogger()
+    const cwd = fixturePath('babel-ts')
     const ctx = work.dev({cwd, logger})
     ctx.listen(async ctx => {
       expect(ctx.servers.length).toBe(1)
@@ -78,7 +103,7 @@ describe('@transclusion/work.dev', () => {
 
   it('should serve now-compat app', done => {
     const logger = createLogger()
-    const cwd = path.resolve(__dirname, 'fixtures/now-compat')
+    const cwd = fixturePath('now-compat')
     const ctx = work.dev({cwd, logger})
     ctx.listen(async ctx => {
       expect(ctx.servers.length).toBe(1)
@@ -99,7 +124,7 @@ describe('@transclusion/work.dev', () => {
 
   it('should serve multi-config app', done => {
     const logger = createLogger()
-    const cwd = path.resolve(__dirname, 'fixtures/multi-config')
+    const cwd = fixturePath('multi-config')
     const ctx = work.dev({cwd, logger})
     ctx.listen(async ctx => {
       expect(ctx.servers.length).toBe(2)

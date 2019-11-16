@@ -104,7 +104,8 @@ async function startServer(
     close() {
       server.close()
       workers.forEach(({worker}) => {
-        worker.terminate()
+        // worker.terminate()
+        worker.kill()
       })
     },
     port

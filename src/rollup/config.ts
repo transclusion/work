@@ -26,7 +26,7 @@ interface Opts {
 }
 
 export function buildRollupConfig(opts: Opts): RollupOptions {
-  const extensions = ['.ts', '.tsx', '.es6', '.es', '.jsx', '.js', '.mjs']
+  const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx']
   const {cwd, buildConfig, envConfig, minify, pkg, pluginFn, plugins} = opts
   const dirPath = path.resolve(cwd, buildConfig.dir)
   const aliasConfig = pkg.alias || {}
@@ -39,8 +39,9 @@ export function buildRollupConfig(opts: Opts): RollupOptions {
         }))
       },
       babel: {
-        exclude: 'node_modules/**',
+        exclude: [path.resolve('node_modules/**')],
         extensions,
+        // include: ['**/*'],
         root: cwd
       },
       commonjs: {
@@ -77,12 +78,12 @@ export function buildRollupConfig(opts: Opts): RollupOptions {
       sourcemap: true
     },
     plugins: [
-      opts.useBabel && babel(rollupOpts.babel),
       alias(rollupOpts.alias),
       json(),
       resolve(rollupOpts.resolve),
-      replace(rollupOpts.replace),
       commonjs(rollupOpts.commonjs),
+      opts.useBabel && babel(rollupOpts.babel),
+      replace(rollupOpts.replace),
       minify && terser()
     ].filter(Boolean)
   }

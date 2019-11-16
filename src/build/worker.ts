@@ -1,10 +1,12 @@
 import cpx from 'cpx'
 import path from 'path'
-import {parentPort, workerData} from 'worker_threads'
+// import {parentPort, workerData} from 'worker_threads'
 import {findConfig, findEnvConfig, findPlugins, noopPluginFn} from '../helpers'
 import {detectBabel} from '../lib/detectBabel'
 import {buildRollupConfig} from '../rollup/config'
 import {rollupBuild} from './helpers'
+
+const workerData = JSON.parse(process.env.__DATA || '{}')
 
 const cwd: string = workerData.cwd
 const configIdx: number = workerData.configIdx
@@ -19,12 +21,12 @@ if (typeof configIdx !== 'number') {
 if (typeof buildConfigIdx !== 'number') {
   throw new Error('Missing `buildConfigIdx` in workerData')
 }
-if (!parentPort) {
-  throw new Error('Missing `parentPort`')
-}
+// if (!parentPort) {
+//   throw new Error('Missing `parentPort`')
+// }
 
 // tslint:disable-next-line variable-name
-const _parentPort = parentPort
+// const _parentPort = parentPort
 const configs = findConfig(cwd)
 const config = configs[configIdx]
 if (!config.builds) {
@@ -53,10 +55,12 @@ async function startWorker() {
 
     rollupBuild(rollupConfig)
       .then(() => {
-        _parentPort.postMessage({type: 'complete'})
+        // _parentPort.postMessage({type: 'complete'})
+        ;(process as any).send({type: 'complete'})
       })
       .catch(err => {
-        _parentPort.postMessage({error: 'error', message: err.message, stack: err.stack})
+        // _parentPort.postMessage({error: 'error', message: err.message, stack: err.stack})
+        ;(process as any).send({error: 'error', message: err.message, stack: err.stack})
       })
   } else if (buildConfig.target === 'static') {
     cpx.copy(buildConfig.src, buildConfig.dir, (err: any) => {

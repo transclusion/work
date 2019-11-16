@@ -1,19 +1,31 @@
+import child_process from 'child_process'
 import path from 'path'
 import {rollup, RollupOptions} from 'rollup'
-import {Worker} from 'worker_threads'
+// import {Worker} from 'worker_threads'
 
 export function initWorker(cwd: string, configIdx: number, buildConfigIdx: number, target: string) {
-  return new Worker(path.resolve(__dirname, './worker.js'), {
+  return child_process.fork(path.resolve(__dirname, './worker.js'), [], {
     env: {
       BABEL_ENV: target,
-      NODE_ENV: process.env.NODE_ENV || 'development'
-    },
-    workerData: {
-      buildConfigIdx,
-      configIdx,
-      cwd
+      NODE_ENV: process.env.NODE_ENV || 'development',
+      __DATA: JSON.stringify({
+        buildConfigIdx,
+        configIdx,
+        cwd
+      })
     }
-  } as any)
+  })
+  // return new Worker(path.resolve(__dirname, './worker.js'), {
+  //   env: {
+  //     BABEL_ENV: target,
+  //     NODE_ENV: process.env.NODE_ENV || 'development'
+  //   },
+  //   workerData: {
+  //     buildConfigIdx,
+  //     configIdx,
+  //     cwd
+  //   }
+  // } as any)
 }
 
 export async function rollupBuild(rollupConfig: RollupOptions) {

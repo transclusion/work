@@ -6,9 +6,10 @@ export interface RollupAliasConfig {
 }
 
 export interface RollupBabelConfig {
-  root: string
   exclude: string | string[]
   extensions: string[]
+  // include: string[]
+  root: string
 }
 
 export interface RollupCommonJSConfig {
