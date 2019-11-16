@@ -36,5 +36,9 @@ export async function rollupBuild(rollupConfig: RollupOptions) {
     throw new Error('missing output options')
   }
 
+  if (Array.isArray(outputOptions)) {
+    return Promise.all(outputOptions.map(o => bundle.write(o)))
+  }
+
   return bundle.write(outputOptions)
 }
