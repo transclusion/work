@@ -1,7 +1,7 @@
 import {IncomingMessage, ServerResponse} from 'http'
 import mimeTypes from 'mime-types'
 import path from 'path'
-import pathToRegexp from 'path-to-regexp'
+import {pathToRegexp} from 'path-to-regexp'
 import {readFile} from './helpers'
 import {BuildConfig, Config, RouteConfig, RouteMatch} from './types'
 
