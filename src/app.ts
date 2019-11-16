@@ -1,8 +1,8 @@
+import fs from 'fs'
 import {IncomingMessage, ServerResponse} from 'http'
 import mimeTypes from 'mime-types'
 import path from 'path'
 import {pathToRegexp} from 'path-to-regexp'
-import {readFile} from './helpers'
 import {BuildConfig, Config, RouteConfig, RouteMatch} from './types'
 
 export function matchRoute(routes: RouteConfig[], url: string): RouteMatch | null {
@@ -67,10 +67,9 @@ export async function appHandler(
   if ((build && build.target === 'browser') || !build) {
     const staticFile = path.resolve(cwd, match.path)
     const mimeType = mimeTypes.lookup(staticFile)
-    const buf = await readFile(staticFile)
 
     res.writeHead(200, {'Content-Type': mimeType || 'text/plain'})
-    res.end(buf)
+    fs.createReadStream(staticFile).pipe(res)
 
     return
   } else if (build && build.target === 'server') {
