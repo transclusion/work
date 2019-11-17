@@ -1,4 +1,4 @@
-declare module 'rollup-plugin-alias' {
+declare module '@rollup/plugin-alias' {
   const x: any
   export default x
 }

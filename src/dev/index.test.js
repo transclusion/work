@@ -140,4 +140,25 @@ describe('dev', () => {
       done()
     })
   })
+
+  it('should serve', done => {
+    const logger = createLogger()
+    const cwd = fixturePath('server')
+    const ctx = work.dev({cwd, logger})
+    ctx.listen(async ctx => {
+      expect(ctx.servers.length).toBe(1)
+      const port = ctx.servers[0].port
+      await delay(500)
+      const res = await request.get(`http://localhost:${port}/`)
+      await delay(500)
+      ctx.close()
+      expect(res.text).toBe(`Created`)
+      expect(logger.error.mock.calls).toEqual([])
+      expect(logger.info.mock.calls).toEqual([
+        [`Listening at http://localhost:${port}`],
+        ['GET', '/']
+      ])
+      done()
+    })
+  })
 })

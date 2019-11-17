@@ -52,13 +52,15 @@ export async function appHandler(
   cwd: string,
   config: Config,
   req: IncomingMessage,
-  res: ServerResponse
+  res: ServerResponse,
+  send: (body: any, mimeType: string) => void
 ) {
   const match = matchRoute(config.routes || [], req.url || '/')
 
   if (!match) {
-    res.writeHead(404, {'content-type': 'text/plain'})
-    res.end(`Not found: ${req.url}`)
+    const mimeType = 'text/plain'
+    res.writeHead(404, {'content-type': mimeType})
+    send(`Not found: ${req.url}`, mimeType)
     return
   }
 
@@ -76,11 +78,12 @@ export async function appHandler(
     require(serverFile)(req, res)
     return
   } else if (build) {
-    res.writeHead(500, {'content-type': 'text/plain'})
-    res.end(`Unknown build target: ${build.target}`)
+    const mimeType = 'text/plain'
+    res.writeHead(500, {'content-type': mimeType})
+    send(`Unknown build target: ${build.target}`, mimeType)
     return
   }
 
   res.writeHead(404, {'content-type': 'text/plain'})
-  res.end(`Not found: ${req.url}`)
+  send(`Not found: ${req.url}`, 'text/plain')
 }

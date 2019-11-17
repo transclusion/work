@@ -1,9 +1,9 @@
+import alias from '@rollup/plugin-alias'
+import json from '@rollup/plugin-json'
 import path from 'path'
 import {RollupOptions} from 'rollup'
-import alias from 'rollup-plugin-alias'
 import babel from 'rollup-plugin-babel'
 import commonjs from 'rollup-plugin-commonjs'
-import json from 'rollup-plugin-json'
 import resolve from 'rollup-plugin-node-resolve'
 import replace from 'rollup-plugin-replace'
 import {terser} from 'rollup-plugin-terser'
@@ -50,13 +50,10 @@ export function buildRollupConfig(opts: Opts): RollupOptions {
       external: buildConfig.target === 'server' ? ['micro'] : [],
       replace: {
         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
-        ...Object.keys(envConfig).reduce(
-          (curr, k) => {
-            curr[`process.env.${k}`] = JSON.stringify(envConfig[k])
-            return curr
-          },
-          {} as any
-        )
+        ...Object.keys(envConfig).reduce((curr, k) => {
+          curr[`process.env.${k}`] = JSON.stringify(envConfig[k])
+          return curr
+        }, {} as any)
       },
       resolve: {
         extensions,

@@ -1,4 +1,5 @@
 import getPort from 'get-port'
+import {IncomingMessage, ServerResponse} from 'http'
 import micro from 'micro'
 import path from 'path'
 import {appHandler} from '../app'
@@ -76,18 +77,24 @@ async function startServer(
     })
   })
 
-  async function handler(req: any, res: any) {
+  async function handler(req: IncomingMessage, res: ServerResponse) {
+    // const status = 200
+    ;(res as any).status = (code: number) => res.writeHead(code, {})
+    logger.info(req.method, req.url)
     try {
       await es.middleware(req, res, async () => {
-        logger.info(req.method, req.url)
-        const patchedRes: any = res
-        // tslint:disable-next-line variable-name
-        const _end = res.end.bind(res)
-        patchedRes.end = (body: any) =>
-          _end(
-            String(body).replace('</body>', '<script src="/__work__/reload.js"></script></body>')
-          )
-        await appHandler(cwd, config, req, patchedRes)
+        await appHandler(cwd, config, req, res, (body, mimeType) => {
+          if (mimeType === 'text/html') {
+            res.end(
+              String(body || '').replace(
+                '</body>',
+                '<script src="/__work__/reload.js"></script></body>'
+              )
+            )
+          } else {
+            res.end(body)
+          }
+        })
       })
     } catch (err) {
       res.end(err.stack)

@@ -18,7 +18,9 @@ async function startServer(cwd: string, config: Config, logger: Logger) {
   async function handler(req: any, res: any) {
     try {
       logger.info(req.method, req.url)
-      await appHandler(cwd, config, req, res)
+      await appHandler(cwd, config, req, res, (body, _) => {
+        res.end(body)
+      })
     } catch (err) {
       res.end(err.stack)
     }

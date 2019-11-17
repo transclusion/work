@@ -1,1 +1,0 @@
-{"version":3,"file":"server1.js","sources":["../server1.js"],"sourcesContent":["module.exports = (req, res) => res.end('server1')\n"],"names":[],"mappings":";;AAAA,WAAc,GAAG,CAAC,GAAG,EAAE,GAAG,KAAK,GAAG,CAAC,GAAG,CAAC,SAAS,CAAC;;;;"}
