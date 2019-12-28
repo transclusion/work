@@ -1,44 +1,12 @@
 import cpx from 'cpx'
-import path from 'path'
 import {watch as rollupWatch} from 'rollup'
-// import {parentPort, workerData} from 'worker_threads'
-import {findConfig, findEnvConfig, findPlugins, noopPluginFn} from '../helpers'
 import {detectBabel} from '../lib/detectBabel'
+import {noopPluginFn} from '../lib/helpers'
 import {buildRollupConfig} from '../rollup/config'
 
-const workerData = JSON.parse(process.env.__DATA || '{}')
+import {getContext, WorkerContext} from '../lib/worker'
 
-const cwd: string = workerData.cwd
-const configIdx: number = workerData.configIdx
-const buildConfigIdx: number = workerData.buildConfigIdx
-
-if (typeof cwd !== 'string') {
-  throw new Error('Missing `cwd` in workerData')
-}
-if (typeof configIdx !== 'number') {
-  throw new Error('Missing `configIdx` in workerData')
-}
-if (typeof buildConfigIdx !== 'number') {
-  throw new Error('Missing `buildConfigIdx` in workerData')
-}
-// if (!parentPort) {
-//   throw new Error('Missing `parentPort`')
-// }
-
-// tslint:disable-next-line variable-name
-// const _parentPort = parentPort
-const configs = findConfig(cwd)
-const config = configs[configIdx]
-if (!config.builds) {
-  throw new Error('No configured builds')
-}
-const buildConfig = config.builds[buildConfigIdx]
-const plugins = findPlugins(cwd, config.plugins || [])
-const envConfig = findEnvConfig(cwd)
-// tslint:disable-next-line no-var-requires
-const pkg = require(path.resolve(cwd, 'package.json'))
-
-function cloneRollupEvent(event: any) {
+function cloneRollupEvent(ctx: WorkerContext, event: any) {
   if (event.code === 'BUNDLE_END') {
     return {
       code: 'rollup.BUNDLE_END',
@@ -51,7 +19,7 @@ function cloneRollupEvent(event: any) {
       code: 'rollup.ERROR',
       error: {
         message: event.error.message,
-        stack: event.error.stack ? event.error.stack.replace(cwd, '.') : null
+        stack: event.error.stack ? event.error.stack.replace(ctx.cwd, '.') : null
       }
     }
   }
@@ -64,42 +32,54 @@ function cloneRollupEvent(event: any) {
   return {code: `rollup.${event.code}`}
 }
 
-async function startWorker() {
-  const useBabel = await detectBabel({cwd})
+async function startRollupWorker(ctx: WorkerContext) {
+  const useBabel = await detectBabel({cwd: ctx.cwd})
 
-  if (['browser', 'server'].indexOf(buildConfig.target) > -1) {
-    const rollupConfig = buildRollupConfig({
-      buildConfig,
-      cwd,
-      envConfig,
-      pkg,
-      pluginFn: config.extendRollup || noopPluginFn,
-      plugins,
-      useBabel
-    })
-    const watcher = rollupWatch([rollupConfig])
-    watcher.on('event', event => {
-      // _parentPort.postMessage(cloneRollupEvent(event))
-      ;(process as any).send(cloneRollupEvent(event))
-    })
-  } else if (buildConfig.target === 'static') {
-    const watcher = cpx.watch(buildConfig.src, buildConfig.dir)
-    watcher.on('copy', evt => {
-      // _parentPort.postMessage({code: 'cpx.copy', src: evt.srcPath, dest: evt.dstPath})
-      ;(process as any).send({code: 'cpx.copy', src: evt.srcPath, dest: evt.dstPath})
-    })
-    watcher.on('remove', evt => {
-      // _parentPort.postMessage({code: 'cpx.remove', path: evt.path})
-      ;(process as any).send({code: 'cpx.remove', path: evt.path})
-    })
-    watcher.on('watch-error', evt => {
-      // tslint:disable-next-line no-console
-      console.log('TODO: watch-error', evt)
-      // _parentPort.postMessage({code: 'cpx.watch-error'})
-      ;(process as any).send({code: 'cpx.watch-error'})
-    })
+  const rollupConfig = await buildRollupConfig({
+    buildConfig: ctx.buildConfig,
+    cwd: ctx.cwd,
+    envConfig: ctx.envConfig,
+    pkg: ctx.pkg,
+    pluginFn: ctx.config.extendRollup || noopPluginFn,
+    plugins: ctx.plugins,
+    useBabel
+  })
+
+  const watcher = rollupWatch([rollupConfig])
+
+  watcher.on('event', event => {
+    ctx.postMessage(cloneRollupEvent(ctx, event))
+  })
+}
+
+function startStaticWorker(ctx: WorkerContext) {
+  const watcher = cpx.watch(ctx.buildConfig.src, ctx.buildConfig.dir)
+
+  watcher.on('copy', evt => {
+    ctx.postMessage({code: 'static.copy', src: evt.srcPath, dest: evt.dstPath})
+  })
+
+  watcher.on('remove', evt => {
+    ctx.postMessage({code: 'static.remove', path: evt.path})
+  })
+
+  watcher.on('watch-error', evt => {
+    // tslint:disable-next-line no-console
+    console.log('TODO: watch-error', evt)
+    ctx.postMessage({code: 'static.watch-error'})
+  })
+}
+
+async function startWorker() {
+  const ctx = getContext()
+  const buildTarget = ctx.buildConfig.target || 'static'
+
+  if (['browser', 'server'].includes(buildTarget)) {
+    await startRollupWorker(ctx)
+  } else if (buildTarget === 'static') {
+    startStaticWorker(ctx)
   } else {
-    throw new Error(`Unknown target: ${buildConfig.target}`)
+    throw new Error(`Unknown target: ${buildTarget}`)
   }
 }
 

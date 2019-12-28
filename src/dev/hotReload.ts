@@ -1,12 +1,12 @@
 import {ServerResponse} from 'http'
 import {Middleware} from '../types'
-import {EventSource} from './types'
+import {HotReload} from './types'
 
-const EVENTS_ENDPOINT = '/__work__/events'
-const RELOAD_SCRIPT_ENDPOINT = '/__work__/reload.js'
-const RELOAD_SCRIPT = `;(function() {
+const HOT_RELOAD_EVENTS_ENDPOINT = '/__hotreload__/events'
+const HOT_RELOAD_SCRIPT_ENDPOINT = '/__hotreload__/reload.js'
+const HOT_RELOAD_SCRIPT = `;(function() {
   'use strict'
-  var es = new EventSource('${EVENTS_ENDPOINT}')
+  var es = new EventSource('${HOT_RELOAD_EVENTS_ENDPOINT}')
   es.addEventListener('browser', function(evt) {
     var msg = JSON.parse(evt.data)
     if (msg.code === 'rollup.BUNDLE_END') window.location.reload()
@@ -38,7 +38,7 @@ const RELOAD_SCRIPT = `;(function() {
   }
 })()`
 
-export function eventSource(): EventSource {
+export function hotReload(): HotReload {
   const sockets: any[] = []
 
   const addSocket = (socket: ServerResponse) => {
@@ -52,10 +52,10 @@ export function eventSource(): EventSource {
   }
 
   const middleware: Middleware = (req, res, next) => {
-    if (req.url === RELOAD_SCRIPT_ENDPOINT) {
-      res.end(RELOAD_SCRIPT)
+    if (req.url === HOT_RELOAD_SCRIPT_ENDPOINT) {
+      res.end(HOT_RELOAD_SCRIPT)
       return
-    } else if (req.url === EVENTS_ENDPOINT) {
+    } else if (req.url === HOT_RELOAD_EVENTS_ENDPOINT) {
       addSocket(res)
       req.on('close', () => removeSocket(res))
       return
@@ -71,12 +71,12 @@ export function eventSource(): EventSource {
     }
   }
 
-  const send = (type: string, msg: any) => {
+  const postMessage = (type: string, msg: any) => {
     sockets.forEach(socket => {
       socket.write(`event: ${type}\n`)
       socket.write(`data: ${JSON.stringify(msg)}\n\n`)
     })
   }
 
-  return {middleware, send}
+  return {middleware, postMessage}
 }

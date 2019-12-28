@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import chalk from 'chalk'
+import sourceMapSupport from 'source-map-support'
 import {argv} from 'yargs'
 import build from './build'
 import dev from './dev'
@@ -36,6 +37,8 @@ if (args[0] === 'build') {
     process.exit(1)
   }
 } else if (args[0] === 'dev') {
+  Error.stackTraceLimit = Infinity
+  sourceMapSupport.install()
   try {
     dev({
       cwd: process.cwd(),

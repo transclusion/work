@@ -7,7 +7,7 @@ import commonjs from 'rollup-plugin-commonjs'
 import resolve from 'rollup-plugin-node-resolve'
 import replace from 'rollup-plugin-replace'
 import {terser} from 'rollup-plugin-terser'
-import {noopPluginFn} from '../helpers'
+import {glob, noopPluginFn} from '../lib/helpers'
 import {BuildConfig, Config, PluginFn} from '../types'
 import {applyRollupPlugins} from './helpers'
 import {RollupOpts} from './types'
@@ -25,9 +25,10 @@ interface Opts {
   useBabel: boolean
 }
 
-export function buildRollupConfig(opts: Opts): RollupOptions {
+export async function buildRollupConfig(opts: Opts): Promise<RollupOptions> {
   const extensions = ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx']
   const {cwd, buildConfig, envConfig, minify, pkg, pluginFn, plugins} = opts
+  const input = await glob(path.resolve(cwd, buildConfig.src))
   const dirPath = path.resolve(cwd, buildConfig.dir)
   const aliasConfig = pkg.alias || {}
   const rollupOpts: RollupOpts = applyRollupPlugins(
@@ -68,7 +69,7 @@ export function buildRollupConfig(opts: Opts): RollupOptions {
 
   return {
     external: rollupOpts.external,
-    input: path.resolve(cwd, buildConfig.src),
+    input,
     output: {
       dir: dirPath,
       format: buildConfig.format || (buildConfig.target === 'server' ? 'cjs' : 'iife'),
@@ -78,8 +79,8 @@ export function buildRollupConfig(opts: Opts): RollupOptions {
       alias(rollupOpts.alias),
       json(),
       resolve(rollupOpts.resolve),
-      commonjs(rollupOpts.commonjs),
       opts.useBabel && babel(rollupOpts.babel),
+      commonjs(rollupOpts.commonjs),
       replace(rollupOpts.replace),
       minify && terser()
     ].filter(Boolean)

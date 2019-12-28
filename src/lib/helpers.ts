@@ -1,9 +1,10 @@
 import dotenv from 'dotenv'
 import fs from 'fs'
+import globCallback from 'glob'
 import path from 'path'
 import nodeResolve from 'resolve'
-import {RollupOpts} from './rollup/types'
-import {Config, PluginConfig} from './types'
+import {RollupOpts} from '../rollup/types'
+import {Config, PluginConfig} from '../types'
 
 function dep(m: any) {
   return m.default || m
@@ -41,6 +42,18 @@ export function findPlugins(cwd: string, pluginConfig: PluginConfig): Config[] {
   return pluginConfig.map(pluginId => {
     const pluginPath = nodeResolve.sync(pluginId, {basedir: cwd})
     return dep(require(pluginPath))
+  })
+}
+
+export function glob(pattern: string): Promise<string[]> {
+  return new Promise((resolve, reject) => {
+    globCallback(pattern, (error, result) => {
+      if (error) {
+        reject(error)
+      } else {
+        resolve(result)
+      }
+    })
   })
 }
 

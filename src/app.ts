@@ -1,6 +1,7 @@
 import fs from 'fs'
 import {IncomingMessage, ServerResponse} from 'http'
 import mimeTypes from 'mime-types'
+import minimatch from 'minimatch'
 import path from 'path'
 import {pathToRegexp} from 'path-to-regexp'
 import {BuildConfig, Config, RouteConfig, RouteMatch} from './types'
@@ -41,7 +42,7 @@ export function matchBuild(
   for (const build of builds) {
     const reqFilePath = path.resolve(cwd, relReqFilePath)
     const buildFilePath = resolveBuildFile(path.resolve(cwd, build.dir), build.src)
-    if (reqFilePath === buildFilePath) {
+    if (minimatch(reqFilePath, buildFilePath)) {
       return build
     }
   }

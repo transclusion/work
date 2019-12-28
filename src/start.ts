@@ -1,7 +1,7 @@
 import getPort from 'get-port'
 import micro from 'micro'
 import {appHandler} from './app'
-import {findConfig} from './helpers'
+import {findConfig} from './lib/helpers'
 import {Config, Logger} from './types'
 
 interface Opts {

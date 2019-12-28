@@ -1,6 +1,6 @@
 import {Middleware} from '../types'
 
-export interface EventSource {
+export interface HotReload {
   middleware: Middleware
-  send: (type: string, msg: any) => void
+  postMessage: (type: string, msg: any) => void
 }

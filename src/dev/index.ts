@@ -1,13 +1,13 @@
 import getPort from 'get-port'
 import {IncomingMessage, ServerResponse} from 'http'
 import micro from 'micro'
-import path from 'path'
+// import path from 'path'
 import {appHandler} from '../app'
-import {findConfig} from '../helpers'
+import {findConfig} from '../lib/helpers'
 import {Config, Logger} from '../types'
-import {eventSource} from './eventSource'
 import {initWorkers} from './helpers'
-import {EventSource} from './types'
+import {hotReload} from './hotReload'
+import {HotReload} from './types'
 
 interface Opts {
   cwd?: string
@@ -38,9 +38,11 @@ async function startServer(
   cwd: string,
   config: Config,
   configIdx: number,
-  es: EventSource,
+  es: HotReload,
   logger: Logger
 ): Promise<Server> {
+  // logger.info('start server')
+
   const port = config.port || (await getPort({port: PREFERRED_PORTS}))
   const workers = initWorkers(cwd, config.builds || [], configIdx)
 
@@ -50,13 +52,13 @@ async function startServer(
       console.log(`TODO: ${buildConfig.target} worker:`, event)
     })
 
-    worker.on('message', event => {
-      if (event.code === 'cpx.copy') {
-        logger.info('Copied', event.src, '>', event.dest)
-      } else if (event.code === 'cpx.remove') {
-        logger.info('Removed', event.path)
+    worker.on('message', (event: any) => {
+      if (event.code === 'static.copy') {
+        // logger.info('Copied', event.src, '>', event.dest)
+      } else if (event.code === 'static.remove') {
+        // logger.info('Removed', event.path)
       } else if (event.code === 'rollup.BUNDLE_END') {
-        logger.info('Built', path.relative(cwd, event.input))
+        // logger.info('Built', path.relative(cwd, event.input))
         if (buildConfig.target === 'server') {
           event.output.forEach((distPrefix: string) => {
             Object.keys(require.cache).forEach(filePath => {
@@ -73,7 +75,7 @@ async function startServer(
         process.exit(1)
       }
 
-      es.send(buildConfig.target, event)
+      es.postMessage(buildConfig.target, event)
     })
   })
 
@@ -84,6 +86,8 @@ async function startServer(
     try {
       await es.middleware(req, res, async () => {
         await appHandler(cwd, config, req, res, (body, mimeType) => {
+          logger.info(`mime-type: ${mimeType}`)
+
           if (mimeType === 'text/html') {
             res.end(
               String(body || '').replace(
@@ -129,7 +133,7 @@ function dev(opts: Opts) {
   const configs = findConfig(cwd)
 
   const listen = async (cb?: ListenCallback) => {
-    const es = eventSource()
+    const es = hotReload()
 
     const servers = await Promise.all(
       configs.map((config, configIdx) => startServer(cwd, config, configIdx, es, logger))
